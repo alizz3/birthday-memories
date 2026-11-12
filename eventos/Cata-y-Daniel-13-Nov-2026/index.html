@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#070707">
+  <title>Comparte tus fotos · Daniel &amp; Cata</title>
+  <meta name="description" content="Envía tus fotos y un mensaje para la pantalla de la celebración.">
+  <!-- Vista previa al compartir por WhatsApp (cambia el dominio por el real) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="¡Feliz cumpleaños, Daniel &amp; Cata! 📸">
+  <meta property="og:description" content="Comparte tus fotos y un mensaje para la pantalla de la fiesta.">
+  <meta property="og:image" content="https://birthday-memories.vercel.app/eventos/Cata-y-Daniel-13-Nov-2026/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <link rel="icon" href="/core/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@1,500&family=Great+Vibes&family=Montserrat:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/core/base.css">
+  <link rel="stylesheet" href="/core/enviar.css">
+</head>
+<body class="enviar">
+  <button class="tema-toggle" type="button" aria-label="Cambiar tema">☀</button>
+
+  <header class="cabecera">
+    <p class="cabecera__titulo" data-texto="titulo"></p>
+    <h1 class="cabecera__nombres texto-oro" data-texto="nombres"></h1>
+    <div class="ornamento" aria-hidden="true"><span></span></div>
+    <p class="cabecera__intro" data-texto="introEnvio"></p>
+  </header>
+
+  <main class="contenido">
+    <p class="cargando" id="cargando">Cargando…</p>
+
+    <form id="formulario" class="formulario" novalidate hidden>
+      <div class="campo">
+        <label for="nombre">Tu nombre</label>
+        <input id="nombre" name="nombre" type="text" maxlength="40" autocomplete="name" placeholder="Ej. Tía Marta" required>
+      </div>
+
+      <div class="campo">
+        <span class="etiqueta" id="etiqueta-fotos">Tus fotos</span>
+        <div id="vistas" class="vistas" aria-labelledby="etiqueta-fotos"></div>
+        <label class="selector" id="selector">
+          <input id="archivos" type="file" accept="image/*" multiple class="visualmente-oculto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <span class="selector__texto">Elegir fotos</span>
+          <small class="selector__ayuda">Puedes elegir varias</small>
+        </label>
+      </div>
+
+      <fieldset class="campo modo" id="modo" hidden>
+        <legend>¿Cómo quieres los mensajes?</legend>
+        <div class="segmentado">
+          <label><input type="radio" name="modo" value="mismo" checked><span>Un mensaje para todas</span></label>
+          <label><input type="radio" name="modo" value="cada"><span>Uno por foto</span></label>
+        </div>
+      </fieldset>
+
+      <div class="campo" id="caja-mensaje">
+        <label for="mensaje">Tu mensaje <small>(opcional)</small></label>
+        <textarea id="mensaje" rows="4" placeholder="Escribe algo bonito…"></textarea>
+        <span class="contador" id="contador" aria-live="polite"></span>
+      </div>
+
+      <!-- Trampa para bots: las personas no la ven -->
+      <div class="visualmente-oculto" aria-hidden="true">
+        <label for="sitio">No llenar</label>
+        <input id="sitio" name="sitio" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <p class="nota">Tus fotos se mostrarán en la pantalla de la fiesta después de una revisión rápida. Solo pedimos tu nombre para firmar el mensaje.</p>
+
+      <button class="btn-principal" type="submit" id="enviar">Enviar</button>
+      <p class="estado" id="estado" role="status" aria-live="polite"></p>
+    </form>
+
+    <section class="aviso" id="gracias" hidden>
+      <div class="aviso__icono" aria-hidden="true">✦</div>
+      <h2 class="texto-oro">¡Recibidas!</h2>
+      <p id="gracias-texto"></p>
+      <button class="btn-principal" type="button" id="otra-vez">Enviar más fotos</button>
+    </section>
+
+    <section class="aviso" id="cerrado" hidden>
+      <div class="aviso__icono" aria-hidden="true">✦</div>
+      <h2 class="texto-oro">Por ahora no se reciben fotos</h2>
+      <p>Vuelve a intentarlo más tarde. ¡Gracias por acompañarnos!</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import config from '/eventos/Cata-y-Daniel-13-Nov-2026/evento.config.js';
+    import { iniciarEnvio } from '/core/enviar.js';
+    iniciarEnvio(config);
+  </script>
+</body>
+</html>

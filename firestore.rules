@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// Reglas para birthday-memories (sirven para todos los eventos).
+// - Invitados: solo pueden CREAR fotos en estado "pendiente" si el evento está recibiendo fotos.
+// - TV: lee el evento y las fotos aprobadas; solo puede actualizar el campo "enVivo".
+// - Admins: correos registrados en la colección "admins" (ID del documento = correo).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    }
+
+    match /admins/{correo} {
+      allow read: if request.auth != null && request.auth.token.email == correo;
+      allow write: if false; // se gestionan a mano desde la consola de Firebase
+    }
+
+    match /eventos/{eventoId} {
+      allow read: if true;
+      allow create, delete: if esAdmin();
+      allow update: if esAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['enVivo'])
+        && request.resource.data.enVivo.keys().hasOnly(['fotoId', 'total', 'en'])
+        && request.resource.data.enVivo.en == request.time
+      );
+
+      function eventoAbierto() {
+        let ev = get(/databases/$(database)/documents/eventos/$(eventoId));
+        return ev != null && ev.data.recibiendoFotos == true;
+      }
+
+      match /fotos/{fotoId} {
+        allow read: if esAdmin() || resource.data.estado == 'aprobada';
+        allow update, delete: if esAdmin();
+        allow create: if eventoAbierto() && fotoValida(request.resource.data)
+          && existsAfter(/databases/$(database)/documents/eventos/$(eventoId)/imagenes/$(fotoId));
+
+        function fotoValida(d) {
+          return d.keys().hasOnly(['nombre', 'mensaje', 'estado', 'creadaEn', 'aprobadaEn', 'miniatura',
+                                   'grupoId', 'grupoIndice', 'grupoTotal', 'ancho', 'alto'])
+            && d.keys().hasAll(['nombre', 'mensaje', 'estado', 'creadaEn', 'miniatura'])
+            && d.estado == 'pendiente'
+            && d.aprobadaEn == null
+            && d.creadaEn == request.time
+            && d.nombre is string && d.nombre.size() > 0 && d.nombre.size() <= 40
+            && d.mensaje is string && d.mensaje.size() <= 300
+            && d.miniatura is string && d.miniatura.size() < 80000
+            && d.grupoId is string && d.grupoId.size() <= 60
+            && d.grupoIndice is int && d.grupoTotal is int && d.grupoTotal <= 10
+            && d.ancho is number && d.alto is number;
+        }
+      }
+
+      match /imagenes/{fotoId} {
+        allow read: if esAdmin()
+          || get(/databases/$(database)/documents/eventos/$(eventoId)/fotos/$(fotoId)).data.estado == 'aprobada';
+        allow create: if eventoAbierto()
+          && request.resource.data.keys().hasOnly(['imagen', 'creadaEn'])
+          && request.resource.data.imagen is string
+          && request.resource.data.imagen.size() < 1000000
+          && request.resource.data.creadaEn == request.time;
+        allow update: if false;
+        allow delete: if esAdmin();
+      }
+    }
+  }
+}

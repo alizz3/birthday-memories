@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Pantalla</title>
+  <link rel="icon" href="/core/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@1,500&family=Great+Vibes&family=Montserrat:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/core/base.css">
+  <link rel="stylesheet" href="/core/pantalla.css">
+</head>
+<body class="pantalla">
+  <div class="destellos" aria-hidden="true"></div>
+
+  <header class="encabezado">
+    <p class="encabezado__titulo" data-texto="titulo"></p>
+    <h1 class="encabezado__nombres texto-oro" data-texto="nombres"></h1>
+    <div class="ornamento" aria-hidden="true"><span></span></div>
+  </header>
+
+  <main class="escenario"></main>
+
+  <footer class="indicador oculto" aria-hidden="true">
+    <div class="indicador__barra"><span></span></div>
+    <p class="indicador__texto"></p>
+  </footer>
+
+  <button class="btn-pantalla-completa" type="button" aria-label="Pantalla completa"></button>
+
+  <script type="module">
+    import config from '/eventos/__EVENTO_ID__/evento.config.js';
+    import { iniciarPantalla } from '/core/pantalla.js';
+    iniciarPantalla(config);
+  </script>
+</body>
+</html>

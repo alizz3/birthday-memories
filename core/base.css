@@ -1,0 +1,84 @@
+/* Variables de tema: cada evento puede cambiarlas en evento.config.js → tema */
+:root {
+  --fondo: #070707;
+  --oro: #d4af37;
+  --oro-claro: #f6e27a;
+  --oro-oscuro: #9c7a1e;
+  --texto: #f4efe2;
+  --texto-suave: color-mix(in srgb, var(--texto) 72%, transparent);
+  --superficie: color-mix(in srgb, var(--oro) 6%, #0d0d0d);
+  --borde: color-mix(in srgb, var(--oro) 45%, transparent);
+  --degradado-oro: linear-gradient(120deg, var(--oro-oscuro) 0%, var(--oro-claro) 30%, var(--oro) 52%, #fff3c2 68%, var(--oro-oscuro) 100%);
+
+  --fuente-script: 'Great Vibes', 'Brush Script MT', cursive;
+  --fuente-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --fuente-serif: 'Cormorant Garamond', Georgia, serif;
+  --fuente-ui: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+
+.texto-oro {
+  background: var(--degradado-oro);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.visualmente-oculto {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Separador ornamental ── ◆ ── */
+.ornamento {
+  display: flex; align-items: center; justify-content: center; gap: .8em;
+  color: var(--oro);
+}
+.ornamento::before, .ornamento::after {
+  content: ''; height: 1px; width: min(18vw, 160px);
+  background: linear-gradient(90deg, transparent, var(--oro));
+}
+.ornamento::after { transform: scaleX(-1); }
+.ornamento span { font-size: .7em; transform: rotate(45deg); display: inline-block; width: .6em; height: .6em; background: var(--oro); }
+
+/* Tema claro (sol/luna) para páginas de invitados y admin */
+body[data-tema='claro'] {
+  --fondo: #fbf6ea;
+  --texto: #2b2313;
+  --oro: #a8841f;
+  --oro-claro: #c9a227;
+  --oro-oscuro: #7a5e12;
+  --superficie: #fffdf6;
+  --borde: color-mix(in srgb, var(--oro) 40%, transparent);
+  --degradado-oro: linear-gradient(120deg, #7a5e12, #b8922a 45%, #8c6b16);
+}
+
+.tema-toggle {
+  position: fixed; top: 14px; right: 14px; z-index: 20;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--oro);
+  font-size: 1.15rem; cursor: pointer;
+}
+.tema-toggle:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 2px solid var(--oro-claro); outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

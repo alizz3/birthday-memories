@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+.vercel
+.firebase/
+.firebaserc
+*.log
+# Nunca subir llaves: guárdalas en Proyectos de programación/_llaves/birthday-memories/
+*-firebase-admin*.json
+serviceAccount*.json

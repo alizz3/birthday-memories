@@ -1,0 +1,34 @@
+// Configuración de este evento. Es lo único que normalmente hay que editar.
+export default {
+  // Debe coincidir EXACTO con el nombre de la carpeta (también es el ID en Firestore).
+  id: 'Cata-y-Daniel-13-Nov-2026',
+
+  // Textos de la pantalla
+  titulo: '¡Feliz cumpleaños!',
+  nombres: 'Daniel & Cata',
+  mensajeVacio: '¡FELIZ CUMPLEAÑOS!', // se muestra en grande cuando la foto no trae mensaje
+  textoSinFotos: 'Las fotos aparecerán aquí muy pronto',
+
+  // Textos de la página de invitados
+  introEnvio: 'Comparte tus fotos y un mensaje. Aparecerán en la pantalla de la fiesta.',
+  graciasEnvio: '¡Gracias! Tus fotos aparecerán en la pantalla en unos minutos.',
+
+  // Presentación
+  intervaloSegundos: 90, // valor inicial (60 a 120); se cambia en vivo desde el panel
+
+  // Envío
+  maxFotosPorEnvio: 10,
+  maxCaracteresMensaje: 280,
+
+  // Enlace corto opcional para invitados (debe existir el redirect en vercel.json), ej. '/ana'
+  rutaCorta: '/cata-y-daniel',
+
+  // Colores (opcional). Cambia aquí para otro estilo de fiesta.
+  tema: {
+    fondo: '#070707',
+    oro: '#d4af37',
+    oroClaro: '#f6e27a',
+    oroOscuro: '#9c7a1e',
+    texto: '#f4efe2',
+  },
+};

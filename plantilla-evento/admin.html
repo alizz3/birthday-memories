@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel · __NOMBRES__</title>
+  <link rel="icon" href="/core/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Great+Vibes&family=Montserrat:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/core/base.css">
+  <link rel="stylesheet" href="/core/admin.css">
+</head>
+<body class="admin">
+  <header class="barra">
+    <div>
+      <p class="barra__sub">Panel privado</p>
+      <h1 class="barra__titulo texto-oro" data-texto="nombres"></h1>
+    </div>
+    <div class="barra__usuario" id="usuario" hidden>
+      <span id="usuario-nombre"></span>
+      <button type="button" class="btn btn--fantasma" id="salir">Salir</button>
+    </div>
+  </header>
+  <button class="tema-toggle" type="button" aria-label="Cambiar tema">☀</button>
+
+  <section class="acceso" id="acceso">
+    <div class="tarjeta acceso__caja">
+      <h2>Acceso de administradores</h2>
+      <p>Entra con tu cuenta de Google autorizada para revisar las fotos y controlar la pantalla.</p>
+      <button type="button" class="btn btn--oro" id="entrar">Entrar con Google</button>
+      <p class="acceso__error" id="acceso-error" role="alert"></p>
+    </div>
+  </section>
+
+  <main class="panel" id="panel" hidden>
+    <section class="tarjeta control" aria-labelledby="t-control">
+      <h2 id="t-control">Presentación</h2>
+      <div class="en-vivo">
+        <div class="en-vivo__mini" id="vivo-mini"></div>
+        <div>
+          <p class="en-vivo__estado"><span class="punto" id="vivo-punto"></span><span id="vivo-estado">Pantalla sin conectar</span></p>
+          <p class="en-vivo__detalle" id="vivo-detalle"></p>
+        </div>
+      </div>
+      <div class="botonera">
+        <button type="button" class="btn" data-comando="anterior">◀ Anterior</button>
+        <button type="button" class="btn btn--oro" id="pausa">⏸ Pausar</button>
+        <button type="button" class="btn" data-comando="siguiente">Siguiente ▶</button>
+      </div>
+      <div class="ajuste">
+        <label for="intervalo">Tiempo por foto <output id="intervalo-valor">1:30</output></label>
+        <input type="range" id="intervalo" min="60" max="120" step="5" value="90">
+        <div class="ajuste__marcas"><span>1:00</span><span>1:30</span><span>2:00</span></div>
+      </div>
+      <label class="interruptor">
+        <input type="checkbox" id="recibiendo">
+        <span class="interruptor__pista" aria-hidden="true"></span>
+        <span>Recibir fotos de los invitados</span>
+      </label>
+      <button type="button" class="btn btn--fantasma btn--chico" data-comando="recargar">Recargar la pantalla del TV</button>
+    </section>
+
+    <section class="tarjeta enlaces" aria-labelledby="t-enlaces">
+      <h2 id="t-enlaces">Enlaces</h2>
+      <div class="enlace">
+        <span class="enlace__etiqueta">Para invitados</span>
+        <div class="enlace__fila"><input type="text" id="enlace-invitados" readonly aria-label="Enlace para invitados"><button type="button" class="btn" data-copiar="enlace-invitados">Copiar</button></div>
+      </div>
+      <div class="qr">
+        <img id="qr" alt="Código QR del enlace para invitados" width="180" height="180">
+        <a class="btn btn--fantasma btn--chico" id="qr-descargar" download="qr-invitados.png" target="_blank" rel="noopener">Abrir QR para imprimir</a>
+      </div>
+      <div class="enlace">
+        <span class="enlace__etiqueta">Pantalla del TV</span>
+        <div class="enlace__fila"><input type="text" id="enlace-pantalla" readonly aria-label="Enlace de la pantalla"><a class="btn" id="abrir-pantalla" target="_blank" rel="noopener">Abrir</a></div>
+      </div>
+    </section>
+
+    <section class="tarjeta fotos" aria-labelledby="t-fotos">
+      <div class="fotos__cabecera">
+        <h2 id="t-fotos" class="visualmente-oculto">Fotos</h2>
+        <div class="pestanas" role="tablist">
+          <button type="button" role="tab" class="pestana" data-filtro="pendiente" aria-selected="true">Pendientes <span id="n-pendiente">0</span></button>
+          <button type="button" role="tab" class="pestana" data-filtro="aprobada" aria-selected="false">Aprobadas <span id="n-aprobada">0</span></button>
+        </div>
+        <button type="button" class="btn btn--oro" id="aprobar-todas" hidden>Aprobar todas</button>
+      </div>
+      <div class="grilla" id="grilla"></div>
+      <p class="vacio" id="vacio"></p>
+    </section>
+  </main>
+
+  <dialog class="visor" id="visor">
+    <button type="button" class="visor__cerrar" aria-label="Cerrar">✕</button>
+    <img id="visor-img" alt="">
+    <p id="visor-texto"></p>
+  </dialog>
+
+  <script type="module">
+    import config from '/eventos/__EVENTO_ID__/evento.config.js';
+    import { iniciarAdmin } from '/core/admin.js';
+    iniciarAdmin(config);
+  </script>
+</body>
+</html>

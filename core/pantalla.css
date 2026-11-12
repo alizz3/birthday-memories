@@ -1,0 +1,147 @@
+/* Pantalla del TV: solo foto, mensaje e indicador. Pensada para 16:9. */
+body.pantalla {
+  height: 100vh; width: 100vw; overflow: hidden;
+  display: grid; grid-template-rows: auto 1fr auto;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--oro) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--oro) 8%, transparent), transparent 55%),
+    var(--fondo);
+  user-select: none;
+}
+body.pantalla.cursor-oculto, body.pantalla.cursor-oculto * { cursor: none !important; }
+
+/* Marco dorado de toda la pantalla */
+body.pantalla::before {
+  content: ''; position: fixed; inset: 1.6vh 1.2vw; pointer-events: none; z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--oro) 35%, transparent);
+  box-shadow: inset 0 0 0 .5vh var(--fondo), inset 0 0 0 calc(.5vh + 1px) color-mix(in srgb, var(--oro) 18%, transparent);
+}
+
+/* Destellos sutiles */
+.destellos { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.destellos i {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--oro-claro); box-shadow: 0 0 6px var(--oro-claro);
+  opacity: 0; animation: titilar var(--d, 6s) ease-in-out infinite; animation-delay: var(--r, 0s);
+}
+@keyframes titilar { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: .7; transform: scale(1); } }
+
+/* Encabezado */
+.encabezado { position: relative; z-index: 1; text-align: center; padding: 3.4vh 0 1.4vh; line-height: 1; }
+.encabezado__titulo {
+  margin: 0; font-family: var(--fuente-display); font-weight: 600;
+  font-size: 2.6vh; letter-spacing: .45em; text-transform: uppercase; color: var(--oro);
+  padding-left: .45em;
+}
+.encabezado__nombres {
+  margin: .4vh 0 0; font-family: var(--fuente-script); font-weight: 400;
+  font-size: 9vh; line-height: 1.15; padding: 0 .3em;
+  filter: drop-shadow(0 .4vh 1.4vh rgba(0, 0, 0, .6));
+}
+.encabezado .ornamento { font-size: 1.6vh; margin-top: .6vh; }
+
+/* Escenario con dos diapositivas que se cruzan */
+.escenario { position: relative; z-index: 1; margin: 1.5vh 5.5vw 0; min-height: 0; }
+.diapositiva {
+  position: absolute; inset: 0;
+  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 4.5vw; align-items: stretch;
+  opacity: 0; transition: opacity 1.6s ease; pointer-events: none;
+}
+.diapositiva.activa { opacity: 1; }
+.diapositiva.activa .marco { animation: entrarMarco 1.6s ease both; }
+.diapositiva.activa .mensaje { animation: entrarMensaje 1.8s .25s ease both; }
+@keyframes entrarMarco { from { transform: translateY(1.2vh) scale(.985); } to { transform: none; } }
+@keyframes entrarMensaje { from { opacity: 0; transform: translateX(2vw); } to { opacity: 1; transform: none; } }
+
+/* Marco de la foto */
+.marco {
+  position: relative; height: 100%; max-height: 100%;
+  padding: 1.1vh; border: 2px solid var(--oro);
+  background: #000;
+  box-shadow:
+    0 0 0 .7vh var(--fondo),
+    0 0 0 calc(.7vh + 1px) color-mix(in srgb, var(--oro) 55%, transparent),
+    0 3vh 8vh rgba(0, 0, 0, .85),
+    0 0 9vh color-mix(in srgb, var(--oro) 14%, transparent);
+}
+.marco__interior { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; }
+.marco__fondo {
+  position: absolute; inset: -8%; width: 116%; height: 116%; max-width: none;
+  object-fit: cover; filter: blur(28px) brightness(.45) saturate(1.1);
+}
+.marco__foto {
+  position: relative; width: 100%; height: 100%; object-fit: contain;
+  transform-origin: center;
+}
+.diapositiva.activa .marco__foto { animation: acercar var(--duracion, 90s) linear forwards; }
+body.pausado .marco__foto { animation-play-state: paused !important; }
+@keyframes acercar { from { transform: scale(1); } to { transform: scale(1.045); } }
+
+.esquina { position: absolute; width: 5.5vh; height: 5.5vh; color: var(--oro); z-index: 2; }
+.esquina svg { width: 100%; height: 100%; }
+.esquina--si { top: -1.6vh; left: -1.6vh; }
+.esquina--sd { top: -1.6vh; right: -1.6vh; transform: scaleX(-1); }
+.esquina--ii { bottom: -1.6vh; left: -1.6vh; transform: scaleY(-1); }
+.esquina--id { bottom: -1.6vh; right: -1.6vh; transform: scale(-1, -1); }
+
+.marco__vacio {
+  position: absolute; inset: 0; display: grid; place-content: center; gap: 2vh; text-align: center;
+  font-family: var(--fuente-serif); font-style: italic; font-size: 3vh; color: var(--texto-suave);
+}
+.marco__vacio svg { width: 12vh; height: 12vh; margin: 0 auto; color: var(--oro); opacity: .8; }
+
+/* Mensaje */
+.mensaje {
+  height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; min-width: 0; padding: 2vh 0;
+}
+.mensaje__comilla {
+  font-family: var(--fuente-serif); font-size: 16vh; line-height: .6; height: 7vh;
+  color: var(--oro); opacity: .9;
+}
+.mensaje__texto {
+  margin: 1vh 0 0; width: 100%; max-height: 52vh; overflow: hidden;
+  font-family: var(--fuente-serif); font-style: italic; font-weight: 500;
+  font-size: 5vh; line-height: 1.28; color: var(--texto);
+  overflow-wrap: anywhere;
+}
+.mensaje__autor {
+  margin: 3.5vh 0 0; font-family: var(--fuente-display); font-size: 2.4vh;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--oro);
+}
+.mensaje .ornamento { font-size: 1.4vh; margin-top: 3vh; }
+.mensaje__grande {
+  margin: 0; width: 100%; font-family: var(--fuente-display); font-weight: 700;
+  font-size: 9vh; line-height: 1.12; letter-spacing: .04em;
+  filter: drop-shadow(0 .5vh 1.6vh rgba(0, 0, 0, .7));
+}
+
+/* Indicador inferior */
+.indicador {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: .9vh;
+  padding: 2.6vh 0 3.4vh; transition: opacity .8s;
+}
+.indicador.oculto { opacity: 0; }
+.indicador__barra { width: 18vw; height: 2px; background: color-mix(in srgb, var(--oro) 18%, transparent); border-radius: 2px; overflow: hidden; }
+.indicador__barra span { display: block; height: 100%; width: 0; background: var(--degradado-oro); transition: width .3s linear; }
+.indicador__texto {
+  margin: 0; font-family: var(--fuente-ui); font-size: 1.5vh; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--texto-suave); opacity: .75;
+}
+
+/* Botón de pantalla completa: discreto y se esconde solo */
+.btn-pantalla-completa {
+  position: fixed; right: 2.4vw; bottom: 3vh; z-index: 5;
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--borde); background: rgba(0, 0, 0, .55); color: var(--oro);
+  cursor: pointer; opacity: 0; transition: opacity .5s;
+}
+body.pantalla.mostrar-controles .btn-pantalla-completa,
+.btn-pantalla-completa:focus-visible { opacity: .9; }
+.btn-pantalla-completa svg { width: 20px; height: 20px; }
+
+/* Pantallas verticales o muy angostas (por si se prueba en un celular) */
+@media (max-aspect-ratio: 1/1) {
+  .diapositiva { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr); gap: 3vh; }
+  .mensaje__grande { font-size: 6vh; }
+}
