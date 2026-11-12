@@ -183,7 +183,7 @@ export async function iniciarPantalla(config) {
       mostradoMensaje = foto.mensaje || '';
       vistas.add(id);
       reiniciarTemporizador();
-      datos.reportarEnVivo(id, fotos.length, cancion, colaHasta).catch(() => {});
+      datos.reportarEnVivo(id, fotos.length, cancion).catch(() => {});
       const sig = siguienteId();
       if (sig && sig !== id) cargarImagen(sig).catch(() => {});
     } catch (e) {
@@ -265,20 +265,18 @@ export async function iniciarPantalla(config) {
 
   // ---- Música de fondo ----
   let cancion = '';
-  let colaHasta = 0;
   const musica = crearMusicaTV({
-    alCambiar: (info) => {
-      if (info.cancion === cancion && info.colaHasta === colaHasta) return;
-      cancion = info.cancion;
-      colaHasta = info.colaHasta;
-      datos.reportarEnVivo(actualId, fotos.length, cancion, colaHasta).catch(() => {});
+    alCambiarCancion: (titulo) => {
+      if (titulo === cancion) return;
+      cancion = titulo;
+      datos.reportarEnVivo(actualId, fotos.length, cancion).catch(() => {});
     },
   });
 
   // ---- Suscripciones ----
   datos.escucharEvento((ev) => {
     if (!ev) return;
-    musica.actualizar(ev.musica, ev.enVivo);
+    musica.actualizar(ev.musica);
     if (!segundosDemo) {
       const nuevo = limitarIntervalo(ev.intervaloSegundos) * 1000;
       if (nuevo !== intervaloMs) {

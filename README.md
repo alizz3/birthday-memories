@@ -76,15 +76,6 @@ Las pestañas se sincronizan entre sí. Nada se guarda.
 3. Desde el celular, en el panel: aprueba fotos y ajusta el tiempo. Lo aprobado entra solo a la rotación.
 4. Al terminar, apaga «Recibir fotos».
 
-## Música (opcional)
-
-El panel tiene un buscador de YouTube: **▶ Ya** suena de una en el TV, **+ Cola** la deja para después, y una playlist de fondo suena cuando la cola se acaba. El buscador usa la función `api/youtube.js` de Vercel, que necesita dos variables de entorno en Vercel (Settings → Environment Variables):
-
-- `YOUTUBE_API_KEY`: llave de **YouTube Data API v3** (Google Cloud → APIs y servicios → Credenciales). Restríngela a esa API.
-- `FIREBASE_PROJECT_ID`: el ID del proyecto de Firebase.
-
-La llave nunca va al navegador y la función solo responde a administradores con sesión iniciada.
-
 ## Crear un evento nuevo
 
 ```bash

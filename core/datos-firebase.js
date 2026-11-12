@@ -73,11 +73,9 @@ export async function crearDatos(eventoId) {
       return s.data().imagen;
     },
 
-    reportarEnVivo(fotoId, total, cancion, colaHasta) {
+    reportarEnVivo(fotoId, total, cancion) {
       return fs.updateDoc(refEvento, {
-        enVivo: {
-          fotoId: fotoId || null, total, cancion: (cancion || '').slice(0, 200), colaHasta: colaHasta || 0, en: fs.serverTimestamp(),
-        },
+        enVivo: { fotoId: fotoId || null, total, cancion: (cancion || '').slice(0, 200), en: fs.serverTimestamp() },
       });
     },
 
@@ -168,11 +166,6 @@ export async function crearDatos(eventoId) {
 
     editarMensaje(id, mensaje) {
       return fs.updateDoc(fs.doc(colFotos, id), { mensaje });
-    },
-
-    async tokenAdmin() {
-      const { auth } = await obtenerAuth();
-      return auth.currentUser ? auth.currentUser.getIdToken() : null;
     },
 
     async eliminar(id) {

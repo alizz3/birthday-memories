@@ -115,8 +115,8 @@ export function crearDatos(eventoId, config) {
       if (!imagenes[id]) throw new Error('Imagen no encontrada');
       return imagenes[id];
     },
-    async reportarEnVivo(fotoId, total, cancion, colaHasta) {
-      mutar((e) => { e.evento.enVivo = { fotoId, total, cancion: cancion || '', colaHasta: colaHasta || 0, en: Date.now() }; });
+    async reportarEnVivo(fotoId, total, cancion) {
+      mutar((e) => { e.evento.enVivo = { fotoId, total, cancion: cancion || '', en: Date.now() }; });
     },
     async enviarFoto(f) {
       await new Promise((r) => setTimeout(r, 400));
@@ -147,7 +147,6 @@ export function crearDatos(eventoId, config) {
     async enviarComando(tipo, fotoId = null) {
       mutar((e) => { e.evento.comando = { tipo, fotoId, nonce: Math.random().toString(36).slice(2), en: Date.now() }; });
     },
-    async tokenAdmin() { return 'demo'; },
     async aprobar(id) { mutar((e) => Object.assign(e.fotos[id], { estado: 'aprobada', aprobadaEn: Date.now() })); },
     async aprobarVarias(ids) {
       mutar((e) => ids.forEach((id) => Object.assign(e.fotos[id], { estado: 'aprobada', aprobadaEn: Date.now() })));

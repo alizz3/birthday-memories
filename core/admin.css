@@ -123,18 +123,3 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 }
 
 .interruptor .ayuda { display: block; font-size: .75rem; color: var(--texto-suave); margin-top: 2px; }
-
-.musica__bloque { display: grid; gap: 8px; border-top: 1px solid var(--borde); padding-top: 12px; }
-.musica__titulo { display: flex; justify-content: space-between; align-items: center; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-suave); }
-.musica__lista-nombre { text-transform: none; letter-spacing: 0; color: var(--oro-claro); font-size: .8rem; text-align: right; }
-.musica__resultados { display: grid; gap: 6px; max-height: 360px; overflow-y: auto; }
-.musica__resultados:empty, .musica__cola:empty { display: none; }
-.cancion { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; padding: 6px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--borde); }
-.cancion img { width: 48px; height: 36px; object-fit: cover; border-radius: 6px; background: #000; }
-.cancion__texto { min-width: 0; }
-.cancion__t { margin: 0; font-size: .85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cancion__c { margin: 0; font-size: .72rem; color: var(--texto-suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cancion__acciones { display: flex; gap: 4px; }
-.cancion__acciones .btn { padding: 6px 8px; font-size: .78rem; white-space: nowrap; }
-.musica__cola { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.musica__vacia { margin: 0; font-size: .82rem; color: var(--texto-suave); }

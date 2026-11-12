@@ -24,7 +24,7 @@ service cloud.firestore {
       allow create, delete: if esAdmin();
       allow update: if esAdmin() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['enVivo'])
-        && request.resource.data.enVivo.keys().hasOnly(['fotoId', 'total', 'cancion', 'colaHasta', 'en'])
+        && request.resource.data.enVivo.keys().hasOnly(['fotoId', 'total', 'cancion', 'en'])
         && request.resource.data.enVivo.en == request.time
       );
 
