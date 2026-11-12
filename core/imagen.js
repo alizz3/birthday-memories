@@ -51,6 +51,66 @@ function ajustar(fuente, ladoInicial, limite, calidadInicial) {
   return resultado;
 }
 
+// ---------- Fotos de iPhone (HEIC/HEIF, incluidas las Live Photos) ----------
+// Safari las abre solo; Chrome/Android/Windows no, así que las convertimos a JPEG
+// con heic2any (se descarga solo si hace falta). De una Live Photo se toma la foto fija.
+
+const HEIC_CDN = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+let promesaHeic = null;
+function cargarHeic2any() {
+  if (window.heic2any) return Promise.resolve(window.heic2any);
+  if (!promesaHeic) {
+    promesaHeic = new Promise((ok, mal) => {
+      const s = document.createElement('script');
+      s.src = HEIC_CDN;
+      s.onload = () => (window.heic2any ? ok(window.heic2any) : mal(new Error('heic2any')));
+      s.onerror = () => { promesaHeic = null; mal(new Error('heic2any')); };
+      document.head.appendChild(s);
+    });
+  }
+  return promesaHeic;
+}
+
+export function esVideo(archivo) {
+  return /^video\//i.test(archivo.type) || /\.(mov|mp4|m4v|3gp|webm)$/i.test(archivo.name);
+}
+
+export async function esHeic(archivo) {
+  if (/image\/hei[cf]/i.test(archivo.type) || /\.(heic|heif)$/i.test(archivo.name)) return true;
+  try {
+    const bytes = new Uint8Array(await archivo.slice(4, 12).arrayBuffer());
+    const marca = String.fromCharCode.apply(null, bytes);
+    return /^ftyp(heic|heix|hevc|hevx|heim|heis|mif1|msf1)/.test(marca);
+  } catch (e) { return false; }
+}
+
+async function navegadorLaAbre(archivo) {
+  try {
+    const bmp = await createImageBitmap(archivo);
+    if (bmp.close) bmp.close();
+    return true;
+  } catch (e) {
+    return new Promise((ok) => {
+      const img = new Image();
+      const url = URL.createObjectURL(archivo);
+      img.onload = () => { URL.revokeObjectURL(url); ok(true); };
+      img.onerror = () => { URL.revokeObjectURL(url); ok(false); };
+      img.src = url;
+    });
+  }
+}
+
+/** Devuelve un archivo que el navegador puede mostrar (convierte HEIC si hace falta). */
+export async function normalizarArchivo(archivo) {
+  if (!(await esHeic(archivo))) return archivo;
+  if (await navegadorLaAbre(archivo)) return archivo;
+  const heic2any = await cargarHeic2any();
+  let resultado = await heic2any({ blob: archivo, toType: 'image/jpeg', quality: 0.9 });
+  if (Array.isArray(resultado)) resultado = resultado[0]; // Live Photo / ráfaga: primera imagen
+  const nombre = archivo.name.replace(/\.(heic|heif)$/i, '') + '.jpg';
+  try { return new File([resultado], nombre, { type: 'image/jpeg' }); } catch (e) { return resultado; }
+}
+
 export async function prepararImagen(archivo, { ladoMax = 1600, limite = 750_000 } = {}) {
   const fuente = await decodificar(archivo);
   const imagen = ajustar(fuente, ladoMax, limite, 0.85);

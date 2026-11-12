@@ -1,6 +1,6 @@
 // Página de invitados: nombre + una o varias fotos + mensaje compartido o uno por foto.
 import { aplicarEvento, crearDatos, idAleatorio, activarInterruptorTema } from './comun.js';
-import { prepararImagen } from './imagen.js';
+import { prepararImagen, normalizarArchivo, esVideo } from './imagen.js';
 
 export async function iniciarEnvio(config) {
   aplicarEvento(config);
@@ -39,7 +39,11 @@ export async function iniciarEnvio(config) {
       const el = document.createElement('div');
       el.className = 'vista';
       el.dataset.id = s.id;
-      el.innerHTML = `<img src="${s.url}" alt="Foto ${i + 1} seleccionada">
+      const vista = s.error
+        ? '<span class="vista__estado vista__estado--error">No se pudo leer esta foto</span>'
+        : s.url ? `<img src="${s.url}" alt="Foto ${i + 1} seleccionada">`
+          : '<span class="vista__estado">Preparando…</span>';
+      el.innerHTML = `${vista}
         <button type="button" class="vista__quitar" aria-label="Quitar foto ${i + 1}">✕</button>
         <textarea maxlength="${maxCar}" placeholder="Mensaje para esta foto (opcional)" aria-label="Mensaje para la foto ${i + 1}"></textarea>`;
       const ta = el.querySelector('textarea');
@@ -66,12 +70,21 @@ export async function iniciarEnvio(config) {
   }
 
   archivos.addEventListener('change', () => {
-    const nuevos = [...archivos.files].filter((f) => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+    const todos = [...archivos.files];
+    const videos = todos.filter(esVideo);
+    // Algunas fotos de iPhone llegan sin tipo: se aceptan y se revisan al prepararlas.
+    const nuevos = todos.filter((f) => !esVideo(f) && (f.type.startsWith('image/') || !f.type || /\.(heic|heif)$/i.test(f.name)));
     const espacio = max - seleccion.length;
-    if (nuevos.length > espacio) avisar(`Puedes enviar hasta ${max} fotos a la vez.`, true);
+    if (videos.length) avisar('Los videos no se pueden enviar. Si es una Live Photo, se envía la foto.', true);
+    else if (nuevos.length > espacio) avisar(`Puedes enviar hasta ${max} fotos a la vez.`, true);
     else avisar('');
-    nuevos.slice(0, espacio).forEach((archivo) => {
-      seleccion.push({ id: idAleatorio(), archivo, url: URL.createObjectURL(archivo), mensaje: '' });
+    nuevos.slice(0, espacio).forEach((original) => {
+      const s = { id: idAleatorio(), archivo: original, url: '', mensaje: '', error: false };
+      s.listo = normalizarArchivo(original)
+        .then((f) => { s.archivo = f; s.url = URL.createObjectURL(f); })
+        .catch((err) => { console.error(err); s.error = true; })
+        .then(() => { if (seleccion.includes(s)) pintar(); });
+      seleccion.push(s);
     });
     archivos.value = '';
     pintar();
@@ -121,6 +134,16 @@ export async function iniciarEnvio(config) {
     const nom = nombre.value.trim();
     if (!nom) { avisar('Escribe tu nombre para firmar las fotos.', true); nombre.focus(); return; }
     if (!seleccion.length) { avisar('Elige al menos una foto.', true); return; }
+    if (seleccion.some((s) => !s.url && !s.error)) {
+      avisar('Preparando tus fotos…');
+      botonEnviar.disabled = true;
+      await Promise.all(seleccion.map((s) => s.listo));
+      botonEnviar.disabled = false;
+    }
+    if (seleccion.some((s) => s.error)) {
+      avisar('Quita las fotos marcadas con error (✕) para poder enviar.', true);
+      return;
+    }
     try { localStorage.setItem('bm-nombre', nom); } catch {}
 
     // Bot detectado: fingimos éxito y no enviamos nada.
