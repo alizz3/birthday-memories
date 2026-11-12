@@ -91,6 +91,7 @@ export async function crearDatos(eventoId) {
         grupoId: f.grupoId,
         grupoIndice: f.grupoIndice,
         grupoTotal: f.grupoTotal,
+        para: f.para || '',
         ancho: f.ancho,
         alto: f.alto,
       });

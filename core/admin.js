@@ -173,6 +173,7 @@ export async function iniciarAdmin(config) {
         </button>
         <div class="foto-card__info">
           <p class="foto-card__nombre">${escaparHTML(f.nombre || 'Sin nombre')}<span class="foto-card__hora">${hora(f.creadaEn)}</span></p>
+          ${(config.festejados || []).length > 1 ? `<p class="foto-card__para">Para ${escaparHTML(f.para || ((config.festejados || []).length === 2 ? 'ambos' : 'todos'))}</p>` : ''}
           <p class="foto-card__mensaje">${msg}</p>
         </div>
         <div class="foto-card__acciones">${acciones}</div>

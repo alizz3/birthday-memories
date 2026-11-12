@@ -1,5 +1,5 @@
 // Página de invitados: nombre + una o varias fotos + mensaje compartido o uno por foto.
-import { aplicarEvento, crearDatos, idAleatorio, activarInterruptorTema } from './comun.js';
+import { aplicarEvento, crearDatos, idAleatorio, activarInterruptorTema, escaparHTML } from './comun.js';
 import { prepararImagen, normalizarArchivo, esVideo } from './imagen.js';
 
 export async function iniciarEnvio(config) {
@@ -24,6 +24,19 @@ export async function iniciarEnvio(config) {
   mensaje.maxLength = maxCar;
   $('#gracias-texto').textContent = config.graciasEnvio;
   try { nombre.value = localStorage.getItem('bm-nombre') || ''; } catch {}
+
+  // ¿Para quién? (solo si el evento tiene varios festejados)
+  const festejados = Array.isArray(config.festejados) ? config.festejados.filter(Boolean) : [];
+  if (festejados.length > 1) {
+    const opciones = festejados.map((n) => [n, `Para ${n}`]).concat([['', festejados.length === 2 ? 'Para ambos' : 'Para todos']]);
+    $('#para-opciones').innerHTML = opciones.map(([valor, texto]) => `<label><input type="radio" name="para" value="${escaparHTML(valor)}"${valor === '' ? ' checked' : ''}><span>${escaparHTML(texto)}</span></label>`).join('');
+    $('#para-opciones').style.gridTemplateColumns = `repeat(${opciones.length}, 1fr)`;
+    $('#para-campo').hidden = false;
+  }
+  const paraElegido = () => {
+    const r = form.querySelector('input[name="para"]:checked');
+    return r ? r.value : '';
+  };
 
   /** @type {{id:string, archivo:File, url:string, mensaje:string}[]} */
   let seleccion = [];
@@ -166,6 +179,7 @@ export async function iniciarEnvio(config) {
         const img = await prepararImagen(s.archivo);
         await datos.enviarFoto({
           nombre: nom.slice(0, 40),
+          para: paraElegido().slice(0, 40),
           mensaje: (porFoto ? s.mensaje.trim() : comun).slice(0, maxCar),
           imagen: img.imagen,
           miniatura: img.miniatura,

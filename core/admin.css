@@ -120,3 +120,4 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 }
 
 .interruptor .ayuda { display: block; font-size: .75rem; color: var(--texto-suave); margin-top: 2px; }
+.foto-card__para { margin: 0; font-size: .75rem; font-weight: 600; color: var(--oro-claro); }

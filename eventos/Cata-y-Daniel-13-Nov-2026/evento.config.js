@@ -6,6 +6,9 @@ export default {
   // Textos de la pantalla
   titulo: '¡Feliz cumpleaños!',
   nombres: 'Daniel & Cata',
+  // Si hay varios cumpleañeros, el invitado elige para quién es (o para todos).
+  // En el TV se muestra solo el nombre elegido. Deja [] si es una sola persona.
+  festejados: ['Daniel', 'Cata'],
   textoSinFotos: 'Las fotos aparecerán aquí muy pronto',
 
   // Textos de la página de invitados

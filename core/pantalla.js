@@ -105,11 +105,16 @@ export async function iniciarPantalla(config) {
   function pintarTextos(capa, foto) {
     capa.msg.innerHTML = htmlMensaje(foto);
     capa.conMensaje = Boolean(textoDe(foto, 'mensaje'));
+    capa.para = textoDe(foto, 'para');
   }
 
   // El espacio del mensaje mide lo que mide el mensaje: así título + mensaje
   // quedan centrados a la altura de la foto, sin hueco abajo.
   function aplicarModo(capa) {
+    // Foto dedicada a uno solo de los festejados: el título muestra solo ese nombre
+    const nombres = document.querySelector('.titulo__nombres');
+    const texto = capa.para || config.nombres;
+    if (nombres.textContent !== texto) nombres.textContent = texto;
     ajustarTitulo(); // se repite en cada foto por si la letra cursiva cargó tarde (pasa en TVs)
     document.body.classList.toggle('sin-mensaje', !capa.conMensaje);
     let alto = 0;
@@ -345,7 +350,9 @@ function ajustarTitulo() {
   if (!zona) return;
   const ancho = zona.clientWidth;
   const vh = window.innerHeight / 100;
-  [['.titulo__nombres', 11.5, 6, 0], ['.titulo__feliz', 7.5, 4, 12 * vh]].forEach(([sel, max, min, extra]) => {
+  // Un solo nombre corto (ej. «Cata») puede ir más grande
+  const nombreCorto = (document.querySelector('.titulo__nombres').textContent || '').length <= 10;
+  [['.titulo__nombres', nombreCorto ? 15 : 11.5, 6, 0], ['.titulo__feliz', 7.5, 4, 12 * vh]].forEach(([sel, max, min, extra]) => {
     const el = document.querySelector(sel);
     if (!el) return;
     let tam = max;

@@ -45,8 +45,9 @@ service cloud.firestore {
 
         function fotoValida(d) {
           return d.keys().hasOnly(['nombre', 'mensaje', 'estado', 'creadaEn', 'aprobadaEn', 'miniatura',
-                                   'grupoId', 'grupoIndice', 'grupoTotal', 'ancho', 'alto'])
+                                   'grupoId', 'grupoIndice', 'grupoTotal', 'ancho', 'alto', 'para'])
             && d.keys().hasAll(['nombre', 'mensaje', 'estado', 'creadaEn', 'miniatura'])
+            && (!('para' in d) || (d.para is string && d.para.size() <= 40))
             && ((d.estado == 'pendiente' && d.aprobadaEn == null)
                 || (d.estado == 'aprobada' && d.aprobadaEn == request.time && aprobacionAutomatica()))
             && d.creadaEn == request.time
