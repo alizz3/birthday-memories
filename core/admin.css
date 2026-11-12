@@ -120,4 +120,7 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 }
 
 .interruptor .ayuda { display: block; font-size: .75rem; color: var(--texto-suave); margin-top: 2px; }
-.foto-card__para { margin: 0; font-size: .75rem; font-weight: 600; color: var(--oro-claro); }
+
+.foto-card__para { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.chip { border: 1px solid var(--borde); background: transparent; color: var(--texto-suave); border-radius: 20px; padding: 3px 10px; font: 500 .75rem var(--fuente-ui); cursor: pointer; }
+.chip--activo { background: var(--degradado-oro); color: #1a1406; border-color: transparent; font-weight: 600; }

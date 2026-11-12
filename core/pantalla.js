@@ -298,9 +298,9 @@ export async function iniciarPantalla(config) {
 
     if (!fotos.length) { if (actualId) mostrarVacio(); return; }
     if (!actualId || !mapa.has(actualId)) { mostrar(siguienteId()); return; }
-    // Si el admin editó el mensaje de la foto que está en pantalla, se actualiza en vivo.
+    // Si el admin editó el mensaje o el «para quién» de la foto en pantalla, se actualiza en vivo.
     const actual = mapa.get(actualId);
-    if ((actual.mensaje || '') !== mostradoMensaje) {
+    if ((actual.mensaje || '') !== mostradoMensaje || (actual.para || '') !== (capas[capaActiva].para || '')) {
       mostradoMensaje = actual.mensaje || '';
       const capa = capas[capaActiva];
       pintarTextos(capa, actual);

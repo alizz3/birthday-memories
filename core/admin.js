@@ -141,6 +141,15 @@ export async function iniciarAdmin(config) {
     datos.aprobarVarias(ids).then(() => avisar('Listo: ya salen en el TV')).catch(errorGeneral);
   });
 
+  // Selector «Para quién» en cada foto (solo si el evento tiene varios festejados)
+  const festejados = Array.isArray(config.festejados) ? config.festejados.filter(Boolean) : [];
+  function htmlPara(f) {
+    if (festejados.length < 2) return '';
+    const opciones = festejados.map((n) => [n, n]).concat([['', festejados.length === 2 ? 'Ambos' : 'Todos']]);
+    return `<div class="foto-card__para" role="group" aria-label="Para quién es">${opciones.map(([valor, texto]) =>
+      `<button type="button" class="chip${(f.para || '') === valor ? ' chip--activo' : ''}" data-accion="para" data-para="${escaparHTML(valor)}">${escaparHTML(texto)}</button>`).join('')}</div>`;
+  }
+
   const hora = (ms) => (ms ? new Date(ms).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : '');
 
   function pintarFotos() {
@@ -173,7 +182,7 @@ export async function iniciarAdmin(config) {
         </button>
         <div class="foto-card__info">
           <p class="foto-card__nombre">${escaparHTML(f.nombre || 'Sin nombre')}<span class="foto-card__hora">${hora(f.creadaEn)}</span></p>
-          ${(config.festejados || []).length > 1 ? `<p class="foto-card__para">Para ${escaparHTML(f.para || ((config.festejados || []).length === 2 ? 'ambos' : 'todos'))}</p>` : ''}
+          ${htmlPara(f)}
           <p class="foto-card__mensaje">${msg}</p>
         </div>
         <div class="foto-card__acciones">${acciones}</div>
@@ -210,6 +219,9 @@ export async function iniciarAdmin(config) {
         if (nuevo === null) return;
         await datos.editarMensaje(id, nuevo.trim().slice(0, config.maxCaracteresMensaje || 280));
         avisar('Mensaje actualizado');
+      } else if (accion === 'para') {
+        await datos.editarPara(id, boton.dataset.para || '');
+        avisar(boton.dataset.para ? `Ahora es para ${boton.dataset.para}` : 'Ahora es para ambos');
       } else if (accion === 'ver') abrirVisor(foto);
     } catch (err) { errorGeneral(err); }
   });

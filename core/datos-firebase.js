@@ -167,6 +167,10 @@ export async function crearDatos(eventoId) {
       return fs.updateDoc(fs.doc(colFotos, id), { mensaje });
     },
 
+    editarPara(id, para) {
+      return fs.updateDoc(fs.doc(colFotos, id), { para });
+    },
+
     async eliminar(id) {
       const lote = fs.writeBatch(db);
       lote.delete(fs.doc(colFotos, id));

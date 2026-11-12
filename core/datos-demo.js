@@ -145,6 +145,7 @@ export function crearDatos(eventoId, config) {
     },
     async desaprobar(id) { mutar((e) => Object.assign(e.fotos[id], { estado: 'pendiente', aprobadaEn: null })); },
     async editarMensaje(id, mensaje) { mutar((e) => { e.fotos[id].mensaje = mensaje; }); },
+    async editarPara(id, para) { mutar((e) => { e.fotos[id].para = para; }); },
     async eliminar(id) { mutar((e) => { delete e.fotos[id]; }); },
   };
 }
