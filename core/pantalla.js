@@ -153,7 +153,17 @@ export async function iniciarPantalla(config) {
     });
     vieja.foto.classList.remove('activa');
     vieja.msg.classList.remove('activa');
+    ajustarAnchoFoto(capaNueva);
     aplicarModo(capaNueva);
+  }
+
+  // La columna de la foto toma el ancho de la foto (vertical u horizontal) para que
+  // foto + título queden centrados juntos en la pantalla.
+  function ajustarAnchoFoto(capa) {
+    const marco = capa.foto.querySelector('.marco');
+    const pie = capa.foto.querySelector('.foto-pie');
+    const ancho = Math.max(marco ? marco.offsetWidth : 0, pie ? pie.offsetWidth : 0);
+    if (ancho) zonaFoto.style.width = `${Math.ceil(ancho + window.innerWidth * 0.02)}px`;
   }
 
   function mostrarVacio() {
@@ -248,7 +258,7 @@ export async function iniciarPantalla(config) {
 
   // Estado inicial mientras llegan los datos
   mostrarVacio();
-  const reajustar = () => { ajustarTitulo(); aplicarModo(capas[capaActiva]); };
+  const reajustar = () => { ajustarAnchoFoto(capas[capaActiva]); ajustarTitulo(); aplicarModo(capas[capaActiva]); };
   reajustar();
   if (document.fonts) document.fonts.ready.then(reajustar);
   [1500, 4000, 10000].forEach((ms) => setTimeout(reajustar, ms));
