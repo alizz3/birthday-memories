@@ -38,17 +38,14 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 /* Disposición del panel */
 .panel {
   display: grid; gap: 18px; padding: 20px; max-width: 1280px; margin: 0 auto;
-  grid-template-columns: minmax(300px, 380px) 1fr; grid-template-areas: 'control fotos' 'musica fotos' 'enlaces fotos';
+  grid-template-columns: minmax(300px, 380px) 1fr; grid-template-areas: 'control fotos' 'enlaces fotos';
   align-items: start;
 }
 .control { grid-area: control; display: grid; gap: 16px; }
 .enlaces { grid-area: enlaces; display: grid; gap: 14px; }
-.musica { grid-area: musica; display: grid; gap: 14px; }
-.musica__ahora { margin: 0; font-size: .9rem; color: var(--oro-claro); overflow-wrap: anywhere; }
-.musica__ayuda { margin: 0; font-size: .78rem; line-height: 1.45; color: var(--texto-suave); }
 .fotos { grid-area: fotos; min-height: 60vh; }
 @media (max-width: 860px) {
-  .panel { grid-template-columns: 1fr; grid-template-areas: 'control' 'musica' 'fotos' 'enlaces'; padding: 14px; }
+  .panel { grid-template-columns: 1fr; grid-template-areas: 'control' 'fotos' 'enlaces'; padding: 14px; }
 }
 
 .en-vivo { display: flex; gap: 12px; align-items: center; }

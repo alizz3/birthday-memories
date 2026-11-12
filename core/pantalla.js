@@ -4,7 +4,6 @@
 import {
   aplicarEvento, crearDatos, limitarIntervalo, formatearTiempo, escaparHTML, enModoDemo,
 } from './comun.js';
-import { crearMusicaTV } from './musica-tv.js';
 
 const SVG = {
   corazon: '<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40C17 34 4 26 4 14.5 4 8 8.8 4 14 4c4.4 0 7.8 2.6 10 6.4C26.2 6.6 29.6 4 34 4c5.2 0 10 4 10 10.5C44 26 31 34 24 40z"/></svg>',
@@ -183,7 +182,7 @@ export async function iniciarPantalla(config) {
       mostradoMensaje = foto.mensaje || '';
       vistas.add(id);
       reiniciarTemporizador();
-      datos.reportarEnVivo(id, fotos.length, cancion).catch(() => {});
+      datos.reportarEnVivo(id, fotos.length).catch(() => {});
       const sig = siguienteId();
       if (sig && sig !== id) cargarImagen(sig).catch(() => {});
     } catch (e) {
@@ -263,20 +262,9 @@ export async function iniciarPantalla(config) {
     return;
   }
 
-  // ---- Música de fondo ----
-  let cancion = '';
-  const musica = crearMusicaTV({
-    alCambiarCancion: (titulo) => {
-      if (titulo === cancion) return;
-      cancion = titulo;
-      datos.reportarEnVivo(actualId, fotos.length, cancion).catch(() => {});
-    },
-  });
-
   // ---- Suscripciones ----
   datos.escucharEvento((ev) => {
     if (!ev) return;
-    musica.actualizar(ev.musica);
     if (!segundosDemo) {
       const nuevo = limitarIntervalo(ev.intervaloSegundos) * 1000;
       if (nuevo !== intervaloMs) {

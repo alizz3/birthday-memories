@@ -73,10 +73,8 @@ export async function crearDatos(eventoId) {
       return s.data().imagen;
     },
 
-    reportarEnVivo(fotoId, total, cancion) {
-      return fs.updateDoc(refEvento, {
-        enVivo: { fotoId: fotoId || null, total, cancion: (cancion || '').slice(0, 200), en: fs.serverTimestamp() },
-      });
+    reportarEnVivo(fotoId, total) {
+      return fs.updateDoc(refEvento, { enVivo: { fotoId, total, en: fs.serverTimestamp() } });
     },
 
     async enviarFoto(f) {
