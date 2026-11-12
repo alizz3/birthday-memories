@@ -61,6 +61,7 @@ export function crearDatos(eventoId, config) {
       intervaloSegundos: config.intervaloSegundos,
       pausado: false,
       recibiendoFotos: true,
+      aprobacionAutomatica: config.aprobacionAutomatica !== false,
       comando: null,
       enVivo: null,
     },
@@ -121,9 +122,9 @@ export function crearDatos(eventoId, config) {
       await new Promise((r) => setTimeout(r, 400));
       if (!estado.evento.recibiendoFotos) throw new Error('Cerrado');
       const id = `demo-${Math.random().toString(36).slice(2, 9)}`;
-      const { imagen, ...resto } = f;
+      const { imagen, aprobada, ...resto } = f;
       mutar((e) => {
-        e.fotos[id] = { id, ...resto, estado: 'pendiente', creadaEn: Date.now(), aprobadaEn: null };
+        e.fotos[id] = { id, ...resto, estado: aprobada ? 'aprobada' : 'pendiente', creadaEn: Date.now(), aprobadaEn: aprobada ? Date.now() : null };
       }, { [id]: imagen });
     },
     // Admin simulado: siempre entra.

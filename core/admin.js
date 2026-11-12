@@ -9,7 +9,9 @@ export async function iniciarAdmin(config) {
   const $ = (s) => document.querySelector(s);
 
   const datos = await crearDatos(config);
-  let filtro = 'pendiente';
+  let filtro = 'aprobada';
+  let defectoAplicado = false;
+  let ultimoAuto = null;
   let fotos = [];
   let evento = null;
   let desuscribir = [];
@@ -43,6 +45,7 @@ export async function iniciarAdmin(config) {
       intervaloSegundos: limitarIntervalo(config.intervaloSegundos),
       pausado: false,
       recibiendoFotos: true,
+      aprobacionAutomatica: config.aprobacionAutomatica !== false,
     });
     desuscribir.push(datos.escucharEvento((ev) => { evento = ev; pintarControl(); }));
     desuscribir.push(datos.escucharTodas((lista) => { fotos = lista; pintarFotos(); pintarControl(); }));
@@ -80,6 +83,11 @@ export async function iniciarAdmin(config) {
     datos.actualizarEvento({ intervaloSegundos: limitarIntervalo(rango.value) })
       .then(() => avisar(`Cada foto durará ${formatearTiempo(rango.value * 1000)}`)).catch(errorGeneral);
   });
+  $('#automatica').addEventListener('change', (e) => {
+    datos.actualizarEvento({ aprobacionAutomatica: e.target.checked })
+      .then(() => avisar(e.target.checked ? 'Las fotos nuevas saldrán solas en el TV' : 'Las fotos nuevas quedarán pendientes'))
+      .catch(errorGeneral);
+  });
   $('#recibiendo').addEventListener('change', (e) => {
     datos.actualizarEvento({ recibiendoFotos: e.target.checked }).catch(errorGeneral);
   });
@@ -92,6 +100,15 @@ export async function iniciarAdmin(config) {
       $('#intervalo-valor').textContent = formatearTiempo(rango.value * 1000);
     }
     $('#recibiendo').checked = Boolean(evento.recibiendoFotos);
+    // Eventos creados antes de esta opción: se les pone el valor de evento.config.js
+    if (evento.aprobacionAutomatica === undefined && !defectoAplicado) {
+      defectoAplicado = true;
+      datos.actualizarEvento({ aprobacionAutomatica: config.aprobacionAutomatica !== false }).catch(errorGeneral);
+    }
+    const auto = Boolean(evento.aprobacionAutomatica);
+    $('#automatica').checked = auto;
+    $('.etiqueta-pendiente').textContent = auto ? 'Ocultas' : 'Pendientes';
+    if (auto !== ultimoAuto) { ultimoAuto = auto; pintarFotos(); }
     pintarEnVivo();
     marcarEnPantalla();
   }
@@ -120,8 +137,8 @@ export async function iniciarAdmin(config) {
 
   $('#aprobar-todas').addEventListener('click', async () => {
     const ids = fotos.filter((f) => f.estado === 'pendiente').map((f) => f.id);
-    if (!ids.length || !confirm(`¿Aprobar las ${ids.length} fotos pendientes?`)) return;
-    datos.aprobarVarias(ids).then(() => avisar('Fotos aprobadas')).catch(errorGeneral);
+    if (!ids.length || !confirm(`¿Mostrar en el TV las ${ids.length} fotos de esta lista?`)) return;
+    datos.aprobarVarias(ids).then(() => avisar('Listo: ya salen en el TV')).catch(errorGeneral);
   });
 
   const hora = (ms) => (ms ? new Date(ms).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : '');
@@ -136,13 +153,14 @@ export async function iniciarAdmin(config) {
 
     const lista = filtro === 'pendiente' ? pendientes : aprobadas;
     $('#vacio').textContent = lista.length ? ''
-      : filtro === 'pendiente' ? 'No hay fotos por revisar. Las nuevas aparecerán aquí solas.' : 'Aún no hay fotos aprobadas.';
+      : filtro === 'aprobada' ? 'Aún no hay fotos en pantalla.'
+        : evento && evento.aprobacionAutomatica ? 'No hay fotos ocultas.' : 'No hay fotos por revisar. Las nuevas aparecerán aquí solas.';
 
     $('#grilla').innerHTML = lista.map((f) => {
       const grupo = f.grupoTotal > 1 ? `<span class="insignia">Foto ${f.grupoIndice + 1} de ${f.grupoTotal}</span>` : '';
       const msg = f.mensaje ? escaparHTML(f.mensaje) : '<em>Sin mensaje (el título se verá en grande)</em>';
       const acciones = f.estado === 'pendiente'
-        ? `<button class="btn btn--oro" data-accion="aprobar">✓ Aprobar</button>
+        ? `<button class="btn btn--oro" data-accion="aprobar">${evento && evento.aprobacionAutomatica ? '↺ Mostrar' : '✓ Aprobar'}</button>
            <button class="btn" data-accion="editar">Editar</button>
            <button class="btn btn--peligro" data-accion="eliminar">Eliminar</button>`
         : `<button class="btn btn--oro" data-accion="mostrar">Mostrar ahora</button>

@@ -59,6 +59,11 @@
         <span class="interruptor__pista" aria-hidden="true"></span>
         <span>Recibir fotos de los invitados</span>
       </label>
+      <label class="interruptor">
+        <input type="checkbox" id="automatica">
+        <span class="interruptor__pista" aria-hidden="true"></span>
+        <span>Aprobar fotos automáticamente <small class="ayuda">(salen solas en el TV; tú puedes ocultarlas o borrarlas)</small></span>
+      </label>
       <button type="button" class="btn btn--fantasma btn--chico" data-comando="recargar">Recargar la pantalla del TV</button>
     </section>
 
@@ -82,10 +87,10 @@
       <div class="fotos__cabecera">
         <h2 id="t-fotos" class="visualmente-oculto">Fotos</h2>
         <div class="pestanas" role="tablist">
-          <button type="button" role="tab" class="pestana" data-filtro="pendiente" aria-selected="true">Pendientes <span id="n-pendiente">0</span></button>
-          <button type="button" role="tab" class="pestana" data-filtro="aprobada" aria-selected="false">Aprobadas <span id="n-aprobada">0</span></button>
+          <button type="button" role="tab" class="pestana" data-filtro="pendiente" aria-selected="false"><span class="etiqueta-pendiente">Pendientes</span> <span id="n-pendiente">0</span></button>
+          <button type="button" role="tab" class="pestana" data-filtro="aprobada" aria-selected="true"><span class="etiqueta-aprobada">En pantalla</span> <span id="n-aprobada">0</span></button>
         </div>
-        <button type="button" class="btn btn--oro" id="aprobar-todas" hidden>Aprobar todas</button>
+        <button type="button" class="btn btn--oro" id="aprobar-todas" hidden>Mostrar todas</button>
       </div>
       <div class="grilla" id="grilla"></div>
       <p class="vacio" id="vacio"></p>

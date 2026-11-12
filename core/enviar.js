@@ -119,7 +119,9 @@ export async function iniciarEnvio(config) {
   }
 
   let recibiendo = null;
+  let aprobacionAutomatica = false;
   datos.escucharEvento((ev) => {
+    aprobacionAutomatica = Boolean(ev && ev.aprobacionAutomatica);
     const abierto = Boolean(ev?.recibiendoFotos);
     if (abierto === recibiendo) return;
     recibiendo = abierto;
@@ -172,6 +174,7 @@ export async function iniciarEnvio(config) {
           grupoId,
           grupoIndice: i,
           grupoTotal: total,
+          aprobada: aprobacionAutomatica,
         });
       } catch (err) {
         console.error(err);

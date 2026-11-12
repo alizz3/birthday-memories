@@ -1,7 +1,8 @@
 rules_version = '2';
 
 // Reglas para birthday-memories (sirven para todos los eventos).
-// - Invitados: solo pueden CREAR fotos en estado "pendiente" si el evento está recibiendo fotos.
+// - Invitados: solo pueden CREAR fotos si el evento está recibiendo fotos: "pendiente", o
+//   "aprobada" directamente cuando el evento tiene aprobacionAutomatica = true.
 // - TV: lee el evento y las fotos aprobadas; solo puede actualizar el campo "enVivo".
 // - Admins: correos registrados en la colección "admins" (ID del documento = correo).
 service cloud.firestore {
@@ -32,6 +33,10 @@ service cloud.firestore {
         return ev != null && ev.data.recibiendoFotos == true;
       }
 
+      function aprobacionAutomatica() {
+        return get(/databases/$(database)/documents/eventos/$(eventoId)).data.get('aprobacionAutomatica', false) == true;
+      }
+
       match /fotos/{fotoId} {
         allow read: if esAdmin() || resource.data.estado == 'aprobada';
         allow update, delete: if esAdmin();
@@ -42,8 +47,8 @@ service cloud.firestore {
           return d.keys().hasOnly(['nombre', 'mensaje', 'estado', 'creadaEn', 'aprobadaEn', 'miniatura',
                                    'grupoId', 'grupoIndice', 'grupoTotal', 'ancho', 'alto'])
             && d.keys().hasAll(['nombre', 'mensaje', 'estado', 'creadaEn', 'miniatura'])
-            && d.estado == 'pendiente'
-            && d.aprobadaEn == null
+            && ((d.estado == 'pendiente' && d.aprobadaEn == null)
+                || (d.estado == 'aprobada' && d.aprobadaEn == request.time && aprobacionAutomatica()))
             && d.creadaEn == request.time
             && d.nombre is string && d.nombre.size() > 0 && d.nombre.size() <= 40
             && d.mensaje is string && d.mensaje.size() <= 300

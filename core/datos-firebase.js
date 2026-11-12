@@ -84,9 +84,9 @@ export async function crearDatos(eventoId) {
       lote.set(ref, {
         nombre: f.nombre,
         mensaje: f.mensaje,
-        estado: 'pendiente',
+        estado: f.aprobada ? 'aprobada' : 'pendiente',
         creadaEn: fs.serverTimestamp(),
-        aprobadaEn: null,
+        aprobadaEn: f.aprobada ? fs.serverTimestamp() : null,
         miniatura: f.miniatura,
         grupoId: f.grupoId,
         grupoIndice: f.grupoIndice,

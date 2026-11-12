@@ -118,3 +118,5 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
   padding: 10px 18px; border-radius: 12px; background: var(--degradado-oro); color: #1a1406; font-weight: 600; font-size: .9rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
 }
+
+.interruptor .ayuda { display: block; font-size: .75rem; color: var(--texto-suave); margin-top: 2px; }

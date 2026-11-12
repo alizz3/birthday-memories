@@ -12,6 +12,10 @@ export default {
   introEnvio: 'Comparte tus fotos y un mensaje. Aparecerán en la pantalla de la fiesta.',
   graciasEnvio: '¡Gracias! Tus fotos aparecerán en la pantalla en unos minutos.',
 
+  // true: las fotos salen solas en el TV (el admin puede ocultarlas o borrarlas).
+  // false: cada foto queda pendiente hasta que el admin la apruebe.
+  aprobacionAutomatica: true,
+
   // Presentación
   intervaloSegundos: 90, // valor inicial (60 a 120); se cambia en vivo desde el panel
 
