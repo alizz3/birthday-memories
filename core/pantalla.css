@@ -88,10 +88,10 @@ body.pausado .marco__foto { animation-play-state: paused !important; }
 .titulo__trazo .corazon { position: absolute; left: 50%; top: 1.6vh; width: 5.5vh; height: 5.5vh; margin-left: -2.75vh; color: var(--oro); }
 
 .mensajes {
-  position: relative; height: 34vh; margin-top: 1vh;
+  position: relative; height: 0; margin-top: 2vh;
   transition: height 1s ease, margin 1s ease;
 }
-body.sin-mensaje .mensajes { height: 0; margin-top: 0; }
+body.sin-mensaje .mensajes { margin-top: 0; }
 .msg-capa {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; align-items: flex-start; justify-content: center;

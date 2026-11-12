@@ -116,9 +116,17 @@ export async function iniciarPantalla(config) {
     capa.conMensaje = Boolean(textoDe(foto, 'mensaje'));
   }
 
+  // El espacio del mensaje mide lo que mide el mensaje: así título + mensaje
+  // quedan centrados a la altura de la foto, sin hueco abajo.
   function aplicarModo(capa) {
     document.body.classList.toggle('sin-mensaje', !capa.conMensaje);
-    ajustarTextos(capa.msg);
+    let alto = 0;
+    if (capa.conMensaje) {
+      ajustarTextos(capa.msg);
+      const bloque = capa.msg.querySelector('.mensaje');
+      alto = Math.min(bloque ? bloque.offsetHeight : 0, window.innerHeight * 0.34);
+    }
+    zonaMensajes.style.height = `${Math.ceil(alto)}px`;
   }
 
   function pintarCapa(capa, foto, src) {
@@ -237,7 +245,7 @@ export async function iniciarPantalla(config) {
 
   // Estado inicial mientras llegan los datos
   mostrarVacio();
-  const reajustar = () => { ajustarTitulo(); ajustarTextos(capas[capaActiva].msg); };
+  const reajustar = () => { ajustarTitulo(); aplicarModo(capas[capaActiva]); };
   reajustar();
   if (document.fonts) document.fonts.ready.then(reajustar);
   window.addEventListener('resize', reajustar);
@@ -319,7 +327,7 @@ function ajustarTextos(capaMsg) {
   if (!el) return;
   const bloque = capaMsg.querySelector('.mensaje');
   const vh = window.innerHeight / 100;
-  const alto = capaMsg.parentElement.clientHeight || 34 * vh;
+  const alto = 34 * vh;
   let tam = 4.6;
   el.style.fontSize = `${tam * vh}px`;
   while ((bloque.offsetHeight > alto + 1 || el.scrollWidth > el.clientWidth + 1) && tam > 2.4) {
