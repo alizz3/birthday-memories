@@ -16,6 +16,17 @@ export function aplicarEvento(config) {
   for (const [clave, variable] of Object.entries(mapaVars)) {
     if (tema[clave]) raiz.style.setProperty(variable, tema[clave]);
   }
+  const aRgb = (hex) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return null;
+    const n = parseInt(m[1], 16);
+    return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+  };
+  if (aRgb(tema.oro)) raiz.style.setProperty('--oro-rgb', aRgb(tema.oro));
+  if (aRgb(tema.texto)) {
+    raiz.style.setProperty('--texto-rgb', aRgb(tema.texto));
+    raiz.style.setProperty('--texto-suave', `rgba(${aRgb(tema.texto)}, .72)`);
+  }
   document.querySelectorAll('[data-texto]').forEach((el) => {
     const valor = config[el.dataset.texto];
     if (typeof valor === 'string') el.textContent = valor;

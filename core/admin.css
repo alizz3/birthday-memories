@@ -20,7 +20,7 @@ body.admin { min-height: 100vh; background: var(--fondo); }
   background: transparent; color: var(--texto); font: 500 .9rem var(--fuente-ui); cursor: pointer; text-decoration: none;
   transition: background .2s, border-color .2s;
 }
-.btn:hover { border-color: var(--oro); background: color-mix(in srgb, var(--oro) 10%, transparent); }
+.btn:hover { border-color: var(--oro); background: rgba(var(--oro-rgb), 0.1); }
 .btn--oro { background: var(--degradado-oro); color: #1a1406; border: 0; font-weight: 600; }
 .btn--oro:hover { background: var(--degradado-oro); filter: brightness(1.08); }
 .btn--fantasma { border-color: transparent; color: var(--texto-suave); }
@@ -68,7 +68,7 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 .interruptor__pista::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s; }
 .interruptor input:checked + .interruptor__pista { background: var(--oro); }
 .interruptor input:checked + .interruptor__pista::after { transform: translateX(18px); }
-.interruptor input:focus-visible + .interruptor__pista { outline: 2px solid var(--oro-claro); outline-offset: 2px; }
+.interruptor input:focus + .interruptor__pista { outline: 2px solid var(--oro-claro); outline-offset: 2px; }
 
 .enlace { display: grid; gap: 6px; }
 .enlace__etiqueta { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-suave); }
@@ -84,7 +84,7 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 .fotos__cabecera { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .pestanas { display: flex; gap: 4px; padding: 4px; border-radius: 12px; border: 1px solid var(--borde); }
 .pestana { border: 0; background: transparent; color: var(--texto-suave); padding: 8px 14px; border-radius: 9px; cursor: pointer; font: 500 .9rem var(--fuente-ui); }
-.pestana span { display: inline-block; min-width: 1.6em; padding: 1px 6px; margin-left: 4px; border-radius: 10px; background: color-mix(in srgb, var(--oro) 20%, transparent); color: var(--oro); font-size: .78rem; }
+.pestana span { display: inline-block; min-width: 1.6em; padding: 1px 6px; margin-left: 4px; border-radius: 10px; background: rgba(var(--oro-rgb), 0.2); color: var(--oro); font-size: .78rem; }
 .pestana[aria-selected='true'] { background: var(--degradado-oro); color: #1a1406; font-weight: 600; }
 .pestana[aria-selected='true'] span { background: rgba(0, 0, 0, .15); color: #1a1406; }
 
@@ -95,7 +95,7 @@ body[data-tema='claro'] .btn--peligro { color: #b3261e; }
 .foto-card { border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; background: var(--fondo); }
 .foto-card.en-pantalla { border-color: #4ade80; box-shadow: 0 0 0 1px #4ade80; }
 .foto-card__mini { border: 0; padding: 0; cursor: zoom-in; background: #000; aspect-ratio: 4/3; position: relative; }
-.foto-card__mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.foto-card__mini img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
 .insignia { position: absolute; z-index: 1; top: 8px; left: 8px; padding: 3px 8px; border-radius: 20px; font-size: .7rem; font-weight: 600; background: rgba(0, 0, 0, .7); color: #fff; }
 .insignia--vivo { left: auto; right: 8px; background: #16a34a; }
 .foto-card__info { padding: 10px 12px 4px; display: grid; gap: 4px; flex: 1; }

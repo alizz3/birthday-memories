@@ -10,14 +10,17 @@ import { firebaseConfig } from './firebase-config.js';
 const V = '11.0.2';
 const BASE = `https://www.gstatic.com/firebasejs/${V}`;
 
-const [{ initializeApp }, fs] = await Promise.all([
-  import(`${BASE}/firebase-app.js`),
-  import(`${BASE}/firebase-firestore.js`),
-]);
+// Sin "await" de nivel superior: los navegadores de algunos televisores no lo soportan.
+let fs;
 
 const ms = (t) => (t && typeof t.toMillis === 'function' ? t.toMillis() : null);
 
-export function crearDatos(eventoId) {
+export async function crearDatos(eventoId) {
+  const [{ initializeApp }, firestore] = await Promise.all([
+    import(`${BASE}/firebase-app.js`),
+    import(`${BASE}/firebase-firestore.js`),
+  ]);
+  fs = firestore;
   const app = initializeApp(firebaseConfig);
   const db = fs.getFirestore(app);
   const refEvento = fs.doc(db, 'eventos', eventoId);

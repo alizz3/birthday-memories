@@ -3,8 +3,8 @@ body.pantalla {
   height: 100vh; width: 100vw; overflow: hidden;
   display: grid; grid-template-rows: auto 1fr auto;
   background:
-    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--oro) 10%, transparent), transparent 60%),
-    radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--oro) 8%, transparent), transparent 55%),
+    radial-gradient(ellipse at 50% 0%, rgba(var(--oro-rgb), 0.1), transparent 60%),
+    radial-gradient(ellipse at 50% 120%, rgba(var(--oro-rgb), 0.08), transparent 55%),
     var(--fondo);
   user-select: none;
 }
@@ -12,13 +12,13 @@ body.pantalla.cursor-oculto, body.pantalla.cursor-oculto * { cursor: none !impor
 
 /* Marco dorado de toda la pantalla */
 body.pantalla::before {
-  content: ''; position: fixed; inset: 1.6vh 1.2vw; pointer-events: none; z-index: 0;
-  border: 1px solid color-mix(in srgb, var(--oro) 35%, transparent);
-  box-shadow: inset 0 0 0 .5vh var(--fondo), inset 0 0 0 calc(.5vh + 1px) color-mix(in srgb, var(--oro) 18%, transparent);
+  content: ''; position: fixed; top: 1.6vh; right: 1.2vw; bottom: 1.6vh; left: 1.2vw; pointer-events: none; z-index: 0;
+  border: 1px solid rgba(var(--oro-rgb), 0.35);
+  box-shadow: inset 0 0 0 .5vh var(--fondo), inset 0 0 0 calc(.5vh + 1px) rgba(var(--oro-rgb), 0.18);
 }
 
 /* Destellos sutiles */
-.destellos { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.destellos { position: fixed; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; }
 .destellos i {
   position: absolute; width: 3px; height: 3px; border-radius: 50%;
   background: var(--oro-claro); box-shadow: 0 0 6px var(--oro-claro);
@@ -43,7 +43,7 @@ body.pantalla::before {
 /* Escenario con dos diapositivas que se cruzan */
 .escenario { position: relative; z-index: 1; margin: 1.5vh 5.5vw 0; min-height: 0; }
 .diapositiva {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 4.5vw; align-items: stretch;
   opacity: 0; transition: opacity 1.6s ease; pointer-events: none;
 }
@@ -60,13 +60,13 @@ body.pantalla::before {
   background: #000;
   box-shadow:
     0 0 0 .7vh var(--fondo),
-    0 0 0 calc(.7vh + 1px) color-mix(in srgb, var(--oro) 55%, transparent),
+    0 0 0 calc(.7vh + 1px) rgba(var(--oro-rgb), 0.55),
     0 3vh 8vh rgba(0, 0, 0, .85),
-    0 0 9vh color-mix(in srgb, var(--oro) 14%, transparent);
+    0 0 9vh rgba(var(--oro-rgb), 0.14);
 }
 .marco__interior { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; }
 .marco__fondo {
-  position: absolute; inset: -8%; width: 116%; height: 116%; max-width: none;
+  position: absolute; top: -8%; right: -8%; bottom: -8%; left: -8%; width: 116%; height: 116%; max-width: none;
   object-fit: cover; filter: blur(28px) brightness(.45) saturate(1.1);
 }
 .marco__foto {
@@ -85,7 +85,7 @@ body.pausado .marco__foto { animation-play-state: paused !important; }
 .esquina--id { bottom: -1.6vh; right: -1.6vh; transform: scale(-1, -1); }
 
 .marco__vacio {
-  position: absolute; inset: 0; display: grid; place-content: center; gap: 2vh; text-align: center;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; place-content: center; gap: 2vh; text-align: center;
   font-family: var(--fuente-serif); font-style: italic; font-size: 3vh; color: var(--texto-suave);
 }
 .marco__vacio svg { width: 12vh; height: 12vh; margin: 0 auto; color: var(--oro); opacity: .8; }
@@ -122,7 +122,7 @@ body.pausado .marco__foto { animation-play-state: paused !important; }
   padding: 2.6vh 0 3.4vh; transition: opacity .8s;
 }
 .indicador.oculto { opacity: 0; }
-.indicador__barra { width: 18vw; height: 2px; background: color-mix(in srgb, var(--oro) 18%, transparent); border-radius: 2px; overflow: hidden; }
+.indicador__barra { width: 18vw; height: 2px; background: rgba(var(--oro-rgb), 0.18); border-radius: 2px; overflow: hidden; }
 .indicador__barra span { display: block; height: 100%; width: 0; background: var(--degradado-oro); transition: width .3s linear; }
 .indicador__texto {
   margin: 0; font-family: var(--fuente-ui); font-size: 1.5vh; letter-spacing: .22em;
@@ -137,7 +137,7 @@ body.pausado .marco__foto { animation-play-state: paused !important; }
   cursor: pointer; opacity: 0; transition: opacity .5s;
 }
 body.pantalla.mostrar-controles .btn-pantalla-completa,
-.btn-pantalla-completa:focus-visible { opacity: .9; }
+.btn-pantalla-completa:focus { opacity: .9; }
 .btn-pantalla-completa svg { width: 20px; height: 20px; }
 
 /* Pantallas verticales o muy angostas (por si se prueba en un celular) */

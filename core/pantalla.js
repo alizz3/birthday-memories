@@ -22,7 +22,6 @@ export async function iniciarPantalla(config) {
   ocultarCursorInactivo();
   mantenerPantallaEncendida();
 
-  const datos = await crearDatos(config);
   const params = new URLSearchParams(location.search);
   const segundosDemo = enModoDemo() && Number(params.get('seg'));
 
@@ -209,6 +208,21 @@ export async function iniciarPantalla(config) {
     else if (c.tipo === 'recargar') location.reload();
   }
 
+  // Estado inicial mientras llegan los datos
+  mostrarVacio();
+  if (document.fonts) document.fonts.ready.then(() => ajustarTextos(capas[capaActiva].el));
+  window.addEventListener('resize', () => ajustarTextos(capas[capaActiva].el));
+
+  // ---- Conexión (si falla, reintenta recargando la página) ----
+  let datos;
+  try {
+    datos = await crearDatos(config);
+  } catch (e) {
+    console.error('No se pudo conectar', e);
+    setTimeout(() => location.reload(), 20000);
+    return;
+  }
+
   // ---- Suscripciones ----
   datos.escucharEvento((ev) => {
     if (!ev) return;
@@ -258,10 +272,6 @@ export async function iniciarPantalla(config) {
     else if (e.key.toLowerCase() === 'f') alternarPantallaCompleta();
   });
 
-  // Estado inicial mientras llegan los datos
-  mostrarVacio();
-  document.fonts?.ready.then(() => ajustarTextos(capas[capaActiva].el));
-  window.addEventListener('resize', () => ajustarTextos(capas[capaActiva].el));
 }
 
 // ---------- Ayudantes de interfaz ----------

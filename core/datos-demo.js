@@ -70,7 +70,7 @@ export function crearDatos(eventoId, config) {
   const oyentes = { evento: new Set(), fotos: new Set() };
 
   const emitir = () => {
-    const ev = structuredClone(estado.evento);
+    const ev = JSON.parse(JSON.stringify(estado.evento));
     oyentes.evento.forEach((cb) => cb(ev));
     const lista = Object.values(estado.fotos);
     oyentes.fotos.forEach(({ cb, filtro }) => cb(lista.filter(filtro).map((f) => ({ ...f }))));

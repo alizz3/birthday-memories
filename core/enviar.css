@@ -2,7 +2,7 @@
 body.enviar {
   min-height: 100dvh;
   background:
-    radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--oro) 14%, transparent), transparent 55%),
+    radial-gradient(ellipse at 50% -10%, rgba(var(--oro-rgb), 0.14), transparent 55%),
     var(--fondo);
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
@@ -31,17 +31,17 @@ input[type='text'], textarea {
   background: var(--superficie); border: 1px solid var(--borde); border-radius: 12px;
   padding: 13px 14px; resize: vertical;
 }
-input[type='text']::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--texto) 40%, transparent); }
-input[type='text']:focus, textarea:focus { border-color: var(--oro); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--oro) 25%, transparent); }
+input[type='text']::placeholder, textarea::placeholder { color: rgba(var(--texto-rgb), 0.4); }
+input[type='text']:focus, textarea:focus { border-color: var(--oro); outline: none; box-shadow: 0 0 0 3px rgba(var(--oro-rgb), 0.25); }
 .contador { justify-self: end; font-size: .75rem; color: var(--texto-suave); }
 
 /* Selector de fotos */
 .selector {
   display: grid; justify-items: center; gap: 4px; padding: 22px 12px; cursor: pointer; text-align: center;
   border: 1.5px dashed var(--oro); border-radius: 16px; color: var(--oro);
-  background: color-mix(in srgb, var(--oro) 5%, transparent); transition: background .2s;
+  background: rgba(var(--oro-rgb), 0.05); transition: background .2s;
 }
-.selector:hover { background: color-mix(in srgb, var(--oro) 10%, transparent); }
+.selector:hover { background: rgba(var(--oro-rgb), 0.1); }
 .selector:focus-within { outline: 2px solid var(--oro-claro); outline-offset: 2px; }
 .selector svg { width: 34px; height: 34px; }
 .selector__texto { font-weight: 600; font-size: 1.05rem; }
@@ -73,14 +73,14 @@ input[type='text']:focus, textarea:focus { border-color: var(--oro); outline: no
 .segmentado input { position: absolute; opacity: 0; }
 .segmentado span { display: block; text-align: center; padding: 10px 6px; border-radius: 10px; font-size: .9rem; color: var(--texto-suave); transition: .2s; }
 .segmentado input:checked + span { background: var(--degradado-oro); color: #1a1406; font-weight: 600; }
-.segmentado input:focus-visible + span { outline: 2px solid var(--oro-claro); }
+.segmentado input:focus + span { outline: 2px solid var(--oro-claro); }
 
 .nota { margin: 0; font-size: .82rem; line-height: 1.5; color: var(--texto-suave); text-align: center; }
 
 .btn-principal {
   width: 100%; padding: 16px; border: 0; border-radius: 14px; cursor: pointer;
   background: var(--degradado-oro); color: #1a1406; font: 600 1.05rem var(--fuente-ui); letter-spacing: .06em;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--oro) 25%, transparent);
+  box-shadow: 0 8px 24px rgba(var(--oro-rgb), 0.25);
 }
 .btn-principal:disabled { opacity: .6; cursor: progress; }
 .estado { margin: 0; min-height: 1.4em; text-align: center; font-size: .92rem; color: var(--texto-suave); }

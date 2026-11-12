@@ -5,9 +5,11 @@
   --oro-claro: #f6e27a;
   --oro-oscuro: #9c7a1e;
   --texto: #f4efe2;
-  --texto-suave: color-mix(in srgb, var(--texto) 72%, transparent);
-  --superficie: color-mix(in srgb, var(--oro) 6%, #0d0d0d);
-  --borde: color-mix(in srgb, var(--oro) 45%, transparent);
+  --oro-rgb: 212, 175, 55;
+  --texto-rgb: 244, 239, 226;
+  --texto-suave: rgba(var(--texto-rgb), 0.72);
+  --superficie: #19170f;
+  --borde: rgba(var(--oro-rgb), 0.45);
   --degradado-oro: linear-gradient(120deg, var(--oro-oscuro) 0%, var(--oro-claro) 30%, var(--oro) 52%, #fff3c2 68%, var(--oro-oscuro) 100%);
 
   --fuente-script: 'Great Vibes', 'Brush Script MT', cursive;
@@ -61,11 +63,14 @@ img { max-width: 100%; display: block; }
 body[data-tema='claro'] {
   --fondo: #fbf6ea;
   --texto: #2b2313;
+  --oro-rgb: 168, 132, 31;
+  --texto-rgb: 43, 35, 19;
+  --texto-suave: rgba(43, 35, 19, .72);
   --oro: #a8841f;
   --oro-claro: #c9a227;
   --oro-oscuro: #7a5e12;
   --superficie: #fffdf6;
-  --borde: color-mix(in srgb, var(--oro) 40%, transparent);
+  --borde: rgba(var(--oro-rgb), 0.4);
   --degradado-oro: linear-gradient(120deg, #7a5e12, #b8922a 45%, #8c6b16);
 }
 
@@ -75,7 +80,7 @@ body[data-tema='claro'] {
   border: 1px solid var(--borde); background: var(--superficie); color: var(--oro);
   font-size: 1.15rem; cursor: pointer;
 }
-.tema-toggle:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+.tema-toggle:focus, button:focus, input:focus, textarea:focus, a:focus {
   outline: 2px solid var(--oro-claro); outline-offset: 2px;
 }
 
