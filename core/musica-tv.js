@@ -1,5 +1,9 @@
 // Música de fondo en la pantalla del TV con el reproductor oficial de YouTube.
-// El video no se ve: solo suena. Se controla desde el panel (evento.musica).
+// El video no se ve: solo suena. Todo se controla desde el panel (evento.musica):
+//   musica.lista   → canciones de una playlist (suenan de fondo, en orden o aleatorio)
+//   musica.cola    → canciones que el admin agregó con «+ Cola» (pasan primero)
+//   musica.comando → acciones puntuales: siguiente, anterior o reproducir una ya
+// El TV recuerda hasta dónde reprodujo la cola en enVivo.colaHasta.
 // Los navegadores no dejan sonar audio hasta que alguien toca la pantalla una vez,
 // por eso aparece el botón «Activar música» (o sirve tocar pantalla completa).
 
@@ -21,40 +25,100 @@ function cargarAPI() {
 
 const yaTocaron = () => Boolean(navigator.userActivation && navigator.userActivation.hasBeenActive);
 
-export function crearMusicaTV({ alCambiarCancion }) {
+function barajar(n) {
+  const orden = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = orden[i]; orden[i] = orden[j]; orden[j] = t;
+  }
+  return orden;
+}
+
+export function crearMusicaTV({ alCambiar }) {
   const boton = document.querySelector('.btn-musica');
   let player = null;
-  let estado = null;
-  let claveCargada = null;
+  let m = null; // evento.musica
+  let actual = null; // { id, t }
+  const historial = [];
+  let orden = [];
+  let pos = -1;
+  let claveLista = '';
+  let colaHasta = null;
   let ultimoNonce = null;
   let primerComando = true;
   let cola = Promise.resolve();
 
-  function sonidoPermitido() {
-    if (!player || !estado) return;
+  const reproduciendo = () => Boolean(m && m.reproduciendo !== false);
+  const volumen = () => (m && typeof m.volumen === 'number' ? m.volumen : 80);
+  const avisar = () => alCambiar({ cancion: actual ? actual.t || '' : '', colaHasta: colaHasta || 0 });
+
+  function sonido() {
+    if (!player) return;
+    player.setVolume(volumen());
     if (yaTocaron()) {
       player.unMute();
       if (boton) boton.hidden = true;
-    } else {
+    } else if (actual && reproduciendo()) {
       player.mute(); // sin el toque inicial solo puede sonar en silencio
       if (boton) { boton.hidden = false; boton.focus(); }
     }
   }
 
   function activarConToque() {
-    if (!player || !estado || !hayMusica(estado)) return;
+    if (!player || !actual) return;
     player.unMute();
     player.setVolume(volumen());
-    if (estado.reproduciendo !== false) player.playVideo();
+    if (reproduciendo()) player.playVideo();
     if (boton) boton.hidden = true;
   }
   if (boton) boton.addEventListener('click', activarConToque);
   ['click', 'keydown', 'touchstart'].forEach((ev) => document.addEventListener(ev, () => {
-    if (player && player.isMuted && player.isMuted() && estado && estado.reproduciendo !== false) activarConToque();
+    if (player && player.isMuted && player.isMuted()) activarConToque();
   }, { passive: true }));
 
-  const hayMusica = (m) => Boolean(m && (m.playlistId || m.videoId));
-  const volumen = () => (estado && typeof estado.volumen === 'number' ? estado.volumen : 80);
+  function reproducir(item, { guardar = true } = {}) {
+    if (guardar && actual) {
+      historial.push(actual);
+      if (historial.length > 30) historial.shift();
+    }
+    actual = { id: item.id, t: item.t || '' };
+    if (reproduciendo()) player.loadVideoById(item.id);
+    else player.cueVideoById(item.id);
+    sonido();
+    avisar();
+  }
+
+  function pendientesCola() {
+    return ((m && m.cola) || [])
+      .filter((i) => i && i.id && (colaHasta === null || i.en > colaHasta))
+      .sort((a, b) => a.en - b.en);
+  }
+
+  function siguiente() {
+    const pend = pendientesCola();
+    if (pend.length) {
+      colaHasta = pend[0].en;
+      reproducir(pend[0]);
+      return;
+    }
+    const lista = (m && m.lista) || [];
+    if (lista.length) {
+      pos = (pos + 1) % orden.length;
+      reproducir(lista[orden[pos]]);
+      return;
+    }
+    // Nada más para sonar
+    if (actual) historial.push(actual);
+    actual = null;
+    if (player && player.stopVideo) player.stopVideo();
+    if (boton) boton.hidden = true;
+    avisar();
+  }
+
+  function anterior() {
+    const previa = historial.pop();
+    if (previa) reproducir(previa, { guardar: false });
+  }
 
   function crearPlayer() {
     return new Promise((ok) => {
@@ -64,67 +128,68 @@ export function crearMusicaTV({ alCambiarCancion }) {
         playerVars: { autoplay: 1, controls: 0, disablekb: 1, playsinline: 1, rel: 0, fs: 0 },
         events: {
           onReady: () => ok(),
-          onStateChange: (e) => {
-            const YT = window.YT;
-            if (e.data === YT.PlayerState.PLAYING) {
-              const d = player.getVideoData ? player.getVideoData() : null;
-              alCambiarCancion((d && d.title) || '');
-            } else if (e.data === YT.PlayerState.ENDED && estado && !estado.playlistId) {
-              player.seekTo(0); player.playVideo(); // una sola canción: se repite
-            }
-          },
+          onStateChange: (e) => { if (e.data === window.YT.PlayerState.ENDED) siguiente(); },
           // Canción que no se deja reproducir fuera de YouTube: pasa a la siguiente
-          onError: () => setTimeout(() => { if (player && estado && estado.playlistId) player.nextVideo(); }, 1500),
+          onError: () => setTimeout(siguiente, 1200),
         },
       });
     });
   }
 
-  async function aplicar(m) {
-    estado = m;
-    if (!hayMusica(m)) {
+  async function aplicar(nueva, enVivo) {
+    if (colaHasta === null) colaHasta = (enVivo && enVivo.colaHasta) || 0;
+    if (primerComando) {
+      // Al abrir la pantalla se ignora el último comando viejo que haya quedado guardado
+      primerComando = false;
+      ultimoNonce = nueva && nueva.comando ? nueva.comando.nonce : null;
+    }
+    m = nueva;
+    const hayAlgo = m && ((m.lista && m.lista.length) || (m.cola && m.cola.length) || m.comando);
+    if (!m) {
       if (player && player.stopVideo) player.stopVideo();
-      claveCargada = null;
+      actual = null; claveLista = '';
       if (boton) boton.hidden = true;
-      alCambiarCancion('');
+      avisar();
       return;
     }
+    if (!hayAlgo && !actual) return;
     await cargarAPI();
     if (!player) await crearPlayer();
 
-    const clave = `${m.playlistId || ''}|${m.videoId || ''}`;
-    if (clave !== claveCargada) {
-      claveCargada = clave;
-      if (m.playlistId) {
-        player.loadPlaylist({ list: m.playlistId, listType: 'playlist', index: 0 });
-        setTimeout(() => { player.setLoop(true); player.setShuffle(Boolean(m.aleatorio)); }, 2000);
-      } else {
-        player.loadVideoById(m.videoId);
-      }
-    } else if (m.playlistId) {
-      player.setShuffle(Boolean(m.aleatorio));
+    // Playlist de fondo nueva o modo aleatorio cambiado → nuevo orden
+    const lista = m.lista || [];
+    const clave = `${m.listaId || ''}:${lista.length}:${m.aleatorio ? 1 : 0}`;
+    if (clave !== claveLista) {
+      claveLista = clave;
+      orden = m.aleatorio ? barajar(lista.length) : lista.map((_, i) => i);
+      pos = -1;
     }
 
-    player.setVolume(volumen());
-    sonidoPermitido();
-    if (m.reproduciendo === false) player.pauseVideo();
-    else player.playVideo();
-
+    // Comandos del panel
     const c = m.comando;
+    let atendido = false;
     if (c && c.nonce !== ultimoNonce) {
       ultimoNonce = c.nonce;
-      if (!primerComando) {
-        if (c.tipo === 'siguiente') player.nextVideo();
-        else if (c.tipo === 'anterior') player.previousVideo();
-      }
+      atendido = true;
+      if (c.tipo === 'siguiente') siguiente();
+      else if (c.tipo === 'anterior') anterior();
+      else if (c.tipo === 'reproducir' && c.id) reproducir({ id: c.id, t: c.t });
+      else atendido = false;
     }
-    primerComando = false;
+
+    // Si no está sonando nada y hay algo por sonar, arranca
+    if (!atendido && !actual && (pendientesCola().length || lista.length)) siguiente();
+
+    if (actual) {
+      if (reproduciendo()) player.playVideo(); else player.pauseVideo();
+    }
+    sonido();
   }
 
   return {
-    // Se llama con evento.musica cada vez que cambia el evento.
-    actualizar(m) {
-      cola = cola.then(() => aplicar(m || null)).catch((e) => console.warn('Música:', e));
+    // Se llama con evento.musica y evento.enVivo cada vez que cambia el evento.
+    actualizar(musica, enVivo) {
+      cola = cola.then(() => aplicar(musica || null, enVivo)).catch((e) => console.warn('Música:', e));
     },
   };
 }

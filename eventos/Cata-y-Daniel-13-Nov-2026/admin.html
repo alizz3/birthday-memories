@@ -69,27 +69,43 @@
 
     <section class="tarjeta musica" aria-labelledby="t-musica">
       <h2 id="t-musica">Música</h2>
-      <div class="enlace__fila">
-        <input type="text" id="musica-enlace" placeholder="Pega el enlace de una playlist o canción" aria-label="Enlace de YouTube Music o YouTube">
-        <button type="button" class="btn btn--oro" id="musica-poner">Poner</button>
-      </div>
       <p class="musica__ahora" id="musica-ahora">Sin música</p>
       <div class="botonera">
         <button type="button" class="btn" data-musica="anterior" aria-label="Canción anterior">⏮</button>
-        <button type="button" class="btn btn--oro" id="musica-play">▶ Reproducir</button>
+        <button type="button" class="btn btn--oro" id="musica-play">⏸ Pausar</button>
         <button type="button" class="btn" data-musica="siguiente" aria-label="Siguiente canción">⏭</button>
       </div>
       <div class="ajuste">
         <label for="musica-volumen">Volumen <output id="musica-volumen-valor">80</output></label>
         <input type="range" id="musica-volumen" min="0" max="100" step="5" value="80">
       </div>
-      <label class="interruptor">
-        <input type="checkbox" id="musica-aleatorio">
-        <span class="interruptor__pista" aria-hidden="true"></span>
-        <span>Orden aleatorio</span>
-      </label>
-      <p class="musica__ayuda">Si en el TV aparece «🔊 Activar música», tócalo una vez con el control (el navegador lo exige para dejar sonar).</p>
-      <button type="button" class="btn btn--fantasma btn--chico" id="musica-quitar">Quitar música</button>
+
+      <form class="enlace__fila" id="musica-buscar">
+        <input type="search" id="musica-q" placeholder="Buscar canción o artista" aria-label="Buscar canción o artista" enterkeyhint="search">
+        <button type="submit" class="btn btn--oro" aria-label="Buscar">🔍</button>
+      </form>
+      <div class="musica__resultados" id="musica-resultados"></div>
+
+      <div class="musica__bloque">
+        <div class="musica__titulo"><span>Cola</span><button type="button" class="btn btn--fantasma btn--chico" id="musica-vaciar">Vaciar</button></div>
+        <ol class="musica__cola" id="musica-cola"></ol>
+      </div>
+
+      <div class="musica__bloque">
+        <div class="musica__titulo"><span>Playlist de fondo</span><span class="musica__lista-nombre" id="musica-lista-nombre"></span></div>
+        <div class="enlace__fila">
+          <input type="text" id="musica-enlace" placeholder="Enlace de playlist de YouTube Music" aria-label="Enlace de playlist">
+          <button type="button" class="btn" id="musica-poner">Cargar</button>
+        </div>
+        <label class="interruptor">
+          <input type="checkbox" id="musica-aleatorio">
+          <span class="interruptor__pista" aria-hidden="true"></span>
+          <span>Orden aleatorio</span>
+        </label>
+      </div>
+
+      <p class="musica__ayuda">Suena primero lo de la cola y, cuando se acaba, la playlist de fondo. Si en el TV aparece «🔊 Activar música», tócalo una vez con el control.</p>
+      <button type="button" class="btn btn--fantasma btn--chico" id="musica-quitar">Apagar música</button>
     </section>
 
     <section class="tarjeta enlaces" aria-labelledby="t-enlaces">

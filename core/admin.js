@@ -96,57 +96,134 @@ export async function iniciarAdmin(config) {
   // ---------- Música ----------
   const musicaActual = () => (evento && evento.musica) || null;
   const volumenMusica = $('#musica-volumen');
-  $('#musica-poner').addEventListener('click', () => {
-    const datosEnlace = leerEnlaceMusica($('#musica-enlace').value);
-    if (!datosEnlace) { avisar('Ese enlace no es de YouTube o YouTube Music'); return; }
-    const anterior = musicaActual() || {};
-    datos.actualizarEvento({
-      musica: {
-        ...datosEnlace,
-        enlace: $('#musica-enlace').value.trim().slice(0, 500),
-        reproduciendo: true,
-        volumen: typeof anterior.volumen === 'number' ? anterior.volumen : Number(volumenMusica.value),
-        aleatorio: $('#musica-aleatorio').checked,
-        comando: null,
-      },
-    }).then(() => avisar('Música enviada al TV')).catch(errorGeneral);
+  const nonce = () => Math.random().toString(36).slice(2);
+
+  // Cambia campos de evento.musica (lo crea si aún no existe)
+  function cambiarMusica(cambios) {
+    if (!musicaActual()) {
+      return datos.actualizarEvento({
+        musica: { lista: [], cola: [], reproduciendo: true, volumen: Number(volumenMusica.value), aleatorio: false, comando: null, ...cambios },
+      });
+    }
+    const conPuntos = {};
+    Object.keys(cambios).forEach((k) => { conPuntos[`musica.${k}`] = cambios[k]; });
+    return datos.actualizarEvento(conPuntos);
+  }
+
+  async function pedirYouTube(params) {
+    if (datos.modo === 'demo') {
+      await new Promise((r) => setTimeout(r, 300));
+      if (params.list) return { nombre: 'Playlist demo', items: [1, 2, 3, 4, 5].map((n) => ({ id: `demo${n}`, t: `Canción de playlist ${n}`, c: 'Artista' })) };
+      return { resultados: [1, 2, 3].map((n) => ({ id: `busq${n}`, t: `${params.q || 'Canción'} (resultado ${n})`, c: 'Artista demo', mini: '' })) };
+    }
+    const token = await datos.tokenAdmin();
+    const r = await fetch(`/api/youtube?${new URLSearchParams(params)}`, { headers: { Authorization: `Bearer ${token}` } });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(json.error || 'No se pudo consultar YouTube');
+    return json;
+  }
+
+  const htmlCancion = (c, acciones) => `<li class="cancion" data-id="${escaparHTML(c.id)}">
+      ${c.mini ? `<img src="${escaparHTML(c.mini)}" alt="" loading="lazy">` : '<img alt="">'}
+      <div class="cancion__texto"><p class="cancion__t">${escaparHTML(c.t || 'Canción')}</p><p class="cancion__c">${escaparHTML(c.c || '')}</p></div>
+      <div class="cancion__acciones">${acciones}</div></li>`;
+
+  let resultados = [];
+  $('#musica-buscar').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = $('#musica-q').value.trim();
+    if (!q) return;
+    $('#musica-q').blur();
+    $('#musica-resultados').innerHTML = '<p class="musica__vacia">Buscando…</p>';
+    try {
+      const enlace = leerEnlaceMusica(q);
+      const json = enlace && enlace.videoId ? await pedirYouTube({ id: enlace.videoId }) : await pedirYouTube({ q });
+      resultados = json.resultados || [];
+      $('#musica-resultados').innerHTML = resultados.length
+        ? resultados.map((c) => htmlCancion(c, `<button type="button" class="btn btn--oro" data-accion-musica="ya">▶ Ya</button>
+            <button type="button" class="btn" data-accion-musica="cola">+ Cola</button>`)).join('')
+        : '<p class="musica__vacia">Sin resultados.</p>';
+    } catch (err) {
+      $('#musica-resultados').innerHTML = `<p class="musica__vacia">${escaparHTML(err.message)}</p>`;
+    }
   });
+
+  $('#musica-resultados').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-accion-musica]');
+    if (!b) return;
+    const c = resultados.find((x) => x.id === b.closest('.cancion').dataset.id);
+    if (!c) return;
+    const item = { id: c.id, t: c.t, c: c.c || '', mini: c.mini || '' };
+    if (b.dataset.accionMusica === 'ya') {
+      cambiarMusica({ reproduciendo: true, comando: { tipo: 'reproducir', id: item.id, t: item.t, nonce: nonce() } })
+        .then(() => avisar('Sonando en el TV')).catch(errorGeneral);
+    } else {
+      const hasta = (evento && evento.enVivo && evento.enVivo.colaHasta) || 0;
+      const cola = ((musicaActual() && musicaActual().cola) || []).filter((i) => i.en > hasta).slice(-49);
+      cola.push({ ...item, en: Date.now() });
+      cambiarMusica({ cola }).then(() => avisar('Agregada a la cola')).catch(errorGeneral);
+    }
+  });
+
+  $('#musica-cola').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-quitar-cola]');
+    if (!b || !musicaActual()) return;
+    const en = Number(b.dataset.quitarCola);
+    cambiarMusica({ cola: (musicaActual().cola || []).filter((i) => i.en !== en) }).catch(errorGeneral);
+  });
+  $('#musica-vaciar').addEventListener('click', () => { if (musicaActual()) cambiarMusica({ cola: [] }).catch(errorGeneral); });
+
+  $('#musica-poner').addEventListener('click', async () => {
+    const enlace = leerEnlaceMusica($('#musica-enlace').value);
+    if (!enlace || !enlace.playlistId) { avisar('Pega el enlace de una playlist (debe tener «list=»)'); return; }
+    $('#musica-poner').disabled = true;
+    try {
+      const json = await pedirYouTube({ list: enlace.playlistId });
+      if (!json.items || !json.items.length) throw new Error('La playlist está vacía o es privada');
+      await cambiarMusica({ lista: json.items.map((i) => ({ id: i.id, t: i.t })), listaId: enlace.playlistId, listaNombre: json.nombre || '', reproduciendo: true });
+      avisar(`Playlist cargada: ${json.items.length} canciones`);
+    } catch (err) { avisar(err.message); } finally { $('#musica-poner').disabled = false; }
+  });
+
   $('#musica-play').addEventListener('click', () => {
     const m = musicaActual();
-    if (!m) { avisar('Primero pega un enlace y dale «Poner»'); return; }
-    datos.actualizarEvento({ 'musica.reproduciendo': m.reproduciendo === false }).catch(errorGeneral);
+    if (!m) { avisar('Busca una canción o carga una playlist'); return; }
+    cambiarMusica({ reproduciendo: m.reproduciendo === false }).catch(errorGeneral);
   });
   document.querySelectorAll('[data-musica]').forEach((b) => b.addEventListener('click', () => {
-    if (!musicaActual()) return;
-    datos.actualizarEvento({ 'musica.comando': { tipo: b.dataset.musica, nonce: Math.random().toString(36).slice(2) } })
-      .catch(errorGeneral);
+    if (musicaActual()) cambiarMusica({ comando: { tipo: b.dataset.musica, nonce: nonce() } }).catch(errorGeneral);
   }));
   volumenMusica.addEventListener('input', () => { $('#musica-volumen-valor').textContent = volumenMusica.value; });
   volumenMusica.addEventListener('change', () => {
-    if (musicaActual()) datos.actualizarEvento({ 'musica.volumen': Number(volumenMusica.value) }).catch(errorGeneral);
+    if (musicaActual()) cambiarMusica({ volumen: Number(volumenMusica.value) }).catch(errorGeneral);
   });
   $('#musica-aleatorio').addEventListener('change', (e) => {
-    if (musicaActual()) datos.actualizarEvento({ 'musica.aleatorio': e.target.checked }).catch(errorGeneral);
+    if (musicaActual()) cambiarMusica({ aleatorio: e.target.checked }).catch(errorGeneral);
   });
   $('#musica-quitar').addEventListener('click', () => {
-    datos.actualizarEvento({ musica: null }).then(() => avisar('Música quitada')).catch(errorGeneral);
+    if (!confirm('¿Apagar la música y vaciar la cola y la playlist?')) return;
+    datos.actualizarEvento({ musica: null }).then(() => avisar('Música apagada')).catch(errorGeneral);
   });
 
   function pintarMusica() {
     const m = musicaActual();
-    const sonando = evento && evento.enVivo && evento.enVivo.cancion;
-    $('#musica-play').textContent = m && m.reproduciendo !== false ? '⏸ Pausar' : '▶ Reproducir';
+    const vivo = (evento && evento.enVivo) || {};
+    $('#musica-play').textContent = m && m.reproduciendo === false ? '▶ Reproducir' : '⏸ Pausar';
     $('#musica-ahora').textContent = !m ? 'Sin música'
       : m.reproduciendo === false ? 'En pausa'
-        : sonando ? `♪ ${sonando}` : 'Cargando en el TV…';
+        : vivo.cancion ? `♪ ${vivo.cancion}` : 'Esperando al TV…';
     if (m && document.activeElement !== volumenMusica && typeof m.volumen === 'number') {
       volumenMusica.value = m.volumen;
       $('#musica-volumen-valor').textContent = m.volumen;
     }
-    if (m) $('#musica-aleatorio').checked = Boolean(m.aleatorio);
-    if (m && m.enlace && document.activeElement !== $('#musica-enlace') && !$('#musica-enlace').value) {
-      $('#musica-enlace').value = m.enlace;
-    }
+    $('#musica-aleatorio').checked = Boolean(m && m.aleatorio);
+    $('#musica-lista-nombre').textContent = m && m.lista && m.lista.length
+      ? `${m.listaNombre || 'Playlist'} · ${m.lista.length}` : 'Ninguna';
+    const hasta = vivo.colaHasta || 0;
+    const pendientes = ((m && m.cola) || []).filter((i) => i.en > hasta).sort((a, b) => a.en - b.en);
+    $('#musica-cola').innerHTML = pendientes.map((c) => htmlCancion(c,
+      `<button type="button" class="btn btn--fantasma" data-quitar-cola="${c.en}" aria-label="Quitar de la cola">✕</button>`)).join('');
+    $('#musica-vaciar').hidden = !pendientes.length;
   }
 
   function pintarControl() {
