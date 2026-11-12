@@ -1,22 +1,28 @@
 // Pantalla del TV: muestra las fotos aprobadas en bucle, con transiciones suaves.
 // Prioriza las fotos nuevas (aún no vistas) y obedece los comandos del panel admin.
+// Evita JavaScript muy moderno: los navegadores de algunos televisores son viejos.
 import {
   aplicarEvento, crearDatos, limitarIntervalo, formatearTiempo, escaparHTML, enModoDemo,
 } from './comun.js';
 
-const ESQUINA_SVG = `<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-  <path d="M4 56V20C4 10 10 4 20 4h36"/><path d="M12 56V24c0-7 5-12 12-12h32" opacity=".55"/>
-  <circle cx="20" cy="20" r="3.2" fill="currentColor" stroke="none"/></svg>`;
-
-const CAMARA_SVG = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-  <rect x="6" y="18" width="52" height="36" rx="5"/><path d="M22 18l4-7h12l4 7"/><circle cx="32" cy="36" r="10"/></svg>`;
-
-const ICONO_AMPLIAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
-const ICONO_REDUCIR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+const SVG = {
+  corazon: '<svg viewBox="0 0 48 44" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40C17 34 4 26 4 14.5 4 8 8.8 4 14 4c4.4 0 7.8 2.6 10 6.4C26.2 6.6 29.6 4 34 4c5.2 0 10 4 10 10.5C44 26 31 34 24 40z"/></svg>',
+  trazos: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M30 6l-6 12M37 20l-12 2M33 32l-10-6"/></svg>',
+  trazo: '<svg viewBox="0 0 400 24" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M4 20C120 6 260 2 396 10" stroke-width="3"/><path d="M60 18C160 9 260 7 340 10" stroke-width="1.2" opacity=".6"/></svg>',
+  reloj: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.5V12l3.5 2.5"/></svg>',
+  camara: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="6" y="18" width="52" height="36" rx="6"/><path d="M22 18l4-7h12l4 7"/><circle cx="32" cy="36" r="10"/></svg>',
+  ampliar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  reducir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>',
+};
+const GIROS = ['-3deg', '-1.5deg', '2deg', '-2.5deg', '1.5deg'];
 
 export async function iniciarPantalla(config) {
   aplicarEvento(config);
   document.title = `${config.nombres} · Pantalla`;
+  if (config.fondoImagen) {
+    document.body.style.setProperty('--fondo-imagen', `url("${config.fondoImagen}")`);
+  }
+  document.querySelectorAll('[data-svg]').forEach((el) => { el.innerHTML = SVG[el.dataset.svg] || ''; });
   crearDestellos();
   activarPantallaCompleta();
   ocultarCursorInactivo();
@@ -25,13 +31,15 @@ export async function iniciarPantalla(config) {
   const params = new URLSearchParams(location.search);
   const segundosDemo = enModoDemo() && Number(params.get('seg'));
 
-  const escenario = document.querySelector('.escenario');
-  const capas = [crearCapa(escenario), crearCapa(escenario)];
+  const zonaFoto = document.querySelector('.zona-foto');
+  const zonaMensajes = document.querySelector('.mensajes');
+  const capas = [crearCapa(zonaFoto, zonaMensajes), crearCapa(zonaFoto, zonaMensajes)];
   let capaActiva = 0;
+  let giroIndice = 0;
 
   const indicador = document.querySelector('.indicador');
-  const barra = indicador.querySelector('.indicador__barra span');
-  const textoIndicador = indicador.querySelector('.indicador__texto');
+  const etiqueta = indicador.querySelector('.indicador__etiqueta');
+  const tiempo = indicador.querySelector('.indicador__tiempo');
 
   // ---- Estado ----
   let fotos = []; // aprobadas, en orden de aprobación
@@ -39,6 +47,7 @@ export async function iniciarPantalla(config) {
   const vistas = new Set();
   const historial = [];
   const cache = new Map(); // fotoId -> dataURL (máx. 20)
+  let datos = null;
   let actualId = null;
   let mostradoMensaje = null;
   let intervaloMs = (segundosDemo || limitarIntervalo(config.intervaloSegundos)) * 1000;
@@ -82,41 +91,37 @@ export async function iniciarPantalla(config) {
 
   // ---- Render ----
   function htmlMensaje(foto) {
-    const msg = (foto.mensaje || '').trim();
-    const nombre = (foto.nombre || '').trim();
-    if (msg) {
-      return `<div class="mensaje">
-        <span class="mensaje__comilla" aria-hidden="true">“</span>
-        <p class="mensaje__texto">${escaparHTML(msg)}</p>
-        ${nombre ? `<p class="mensaje__autor">— ${escaparHTML(nombre)}</p>` : ''}
-        <div class="ornamento" aria-hidden="true"><span></span></div>
-      </div>`;
-    }
-    return `<div class="mensaje mensaje--vacio">
-      <p class="mensaje__grande texto-oro">${escaparHTML(config.mensajeVacio)}</p>
-      ${nombre ? `<p class="mensaje__autor">Con cariño, ${escaparHTML(nombre)}</p>` : ''}
-    </div>`;
+    const msg = ((foto && foto.mensaje) || '').trim();
+    const nombre = ((foto && foto.nombre) || '').trim();
+    const cuerpo = msg
+      ? `<p class="mensaje__texto">${escaparHTML(msg)}</p>`
+      : `<p class="mensaje__grande">${escaparHTML(config.mensajeVacio)}</p>`;
+    return `<div class="caja">${cuerpo}
+      ${nombre ? `<p class="caja__autor">${escaparHTML(nombre)}</p>` : ''}
+      <div class="caja__adorno" aria-hidden="true">${SVG.corazon}</div></div>`;
   }
 
   function pintarCapa(capa, foto, src) {
-    const nombre = foto?.nombre ? `Foto enviada por ${foto.nombre}` : 'Foto de la celebración';
-    capa.marco.querySelector('.marco__interior').innerHTML = foto
-      ? `<img class="marco__fondo" src="${src}" alt="" aria-hidden="true">
-         <img class="marco__foto" src="${src}" alt="${escaparHTML(nombre)}">`
-      : `<div class="marco__vacio">${CAMARA_SVG}<span>${escaparHTML(config.textoSinFotos)}</span></div>`;
-    capa.lado.innerHTML = foto ? htmlMensaje(foto) : htmlMensaje({ mensaje: '', nombre: '' });
-    capa.el.style.setProperty('--duracion', `${intervaloMs / 1000 + 4}s`);
+    capa.foto.style.setProperty('--giro', GIROS[giroIndice++ % GIROS.length]);
+    const alt = foto && foto.nombre ? `Foto enviada por ${foto.nombre}` : 'Foto de la celebración';
+    capa.foto.innerHTML = foto
+      ? `<figure class="marco"><div class="marco__recorte"><img class="marco__foto" src="${src}" alt="${escaparHTML(alt)}"></div></figure>`
+      : `<figure class="marco"><div class="marco__recorte"><div class="marco__vacio">${SVG.camara}<span>${escaparHTML(config.textoSinFotos)}</span></div></div></figure>`;
+    capa.msg.innerHTML = htmlMensaje(foto);
+    capa.foto.style.setProperty('--duracion', `${intervaloMs / 1000 + 4}s`);
   }
 
   function activar(capaNueva) {
     const vieja = capas[capaActiva];
     capaActiva = capas.indexOf(capaNueva);
-    // Reinicia las animaciones de entrada
-    capaNueva.el.classList.remove('activa');
-    void capaNueva.el.offsetWidth;
-    capaNueva.el.classList.add('activa');
-    vieja.el.classList.remove('activa');
-    ajustarTextos(capaNueva.el);
+    [capaNueva.foto, capaNueva.msg].forEach((el) => {
+      el.classList.remove('activa');
+      void el.offsetWidth; // reinicia las animaciones de entrada
+      el.classList.add('activa');
+    });
+    vieja.foto.classList.remove('activa');
+    vieja.msg.classList.remove('activa');
+    ajustarTextos(capaNueva.msg);
   }
 
   function mostrarVacio() {
@@ -126,7 +131,8 @@ export async function iniciarPantalla(config) {
     activar(capa);
   }
 
-  async function mostrar(id, { desdeHistorial = false } = {}) {
+  async function mostrar(id, opciones) {
+    const desdeHistorial = Boolean(opciones && opciones.desdeHistorial);
     if (ocupado) { pendiente = { id, desdeHistorial }; return; }
     const foto = mapa.get(id);
     if (!foto) return;
@@ -183,14 +189,14 @@ export async function iniciarPantalla(config) {
     indicador.classList.toggle('oculto', !hayFotos);
     if (!hayFotos) return;
     if (pausado) {
-      barra.style.width = `${(1 - restante / intervaloMs) * 100}%`;
-      textoIndicador.textContent = 'En pausa';
+      etiqueta.textContent = 'En pausa';
+      tiempo.textContent = '';
       return;
     }
     const quedan = finEn - Date.now();
     if (quedan <= 0) { avanzar(); return; }
-    barra.style.width = `${(1 - quedan / intervaloMs) * 100}%`;
-    textoIndicador.textContent = `Siguiente foto en ${formatearTiempo(quedan)}`;
+    etiqueta.textContent = 'Siguiente foto en:';
+    tiempo.textContent = formatearTiempo(quedan, true);
   }, 250);
 
   function pausar(valor) {
@@ -210,11 +216,12 @@ export async function iniciarPantalla(config) {
 
   // Estado inicial mientras llegan los datos
   mostrarVacio();
-  if (document.fonts) document.fonts.ready.then(() => ajustarTextos(capas[capaActiva].el));
-  window.addEventListener('resize', () => ajustarTextos(capas[capaActiva].el));
+  const reajustar = () => { ajustarTitulo(); ajustarTextos(capas[capaActiva].msg); };
+  reajustar();
+  if (document.fonts) document.fonts.ready.then(reajustar);
+  window.addEventListener('resize', reajustar);
 
   // ---- Conexión (si falla, reintenta recargando la página) ----
-  let datos;
   try {
     datos = await crearDatos(config);
   } catch (e) {
@@ -244,52 +251,45 @@ export async function iniciarPantalla(config) {
   });
 
   datos.escucharAprobadas((lista) => {
+    const orden = (v, porDefecto) => (v === null || v === undefined ? porDefecto : v);
     fotos = lista.sort((a, b) =>
-      (a.aprobadaEn ?? Infinity) - (b.aprobadaEn ?? Infinity)
-      || (a.creadaEn ?? 0) - (b.creadaEn ?? 0)
-      || (a.grupoIndice ?? 0) - (b.grupoIndice ?? 0));
+      orden(a.aprobadaEn, Infinity) - orden(b.aprobadaEn, Infinity)
+      || orden(a.creadaEn, 0) - orden(b.creadaEn, 0)
+      || orden(a.grupoIndice, 0) - orden(b.grupoIndice, 0));
     mapa.clear();
     fotos.forEach((f) => mapa.set(f.id, f));
 
-    if (!fotos.length) { if (actualId || !capas[capaActiva].el.classList.contains('activa')) mostrarVacio(); return; }
-    if (!actualId) { mostrar(siguienteId()); return; }
-    if (!mapa.has(actualId)) { mostrar(siguienteId()); return; }
+    if (!fotos.length) { if (actualId) mostrarVacio(); return; }
+    if (!actualId || !mapa.has(actualId)) { mostrar(siguienteId()); return; }
     // Si el admin editó el mensaje de la foto que está en pantalla, se actualiza en vivo.
     const actual = mapa.get(actualId);
     if ((actual.mensaje || '') !== mostradoMensaje) {
       mostradoMensaje = actual.mensaje || '';
       const capa = capas[capaActiva];
-      capa.lado.innerHTML = htmlMensaje(actual);
-      ajustarTextos(capa.el);
+      capa.msg.innerHTML = htmlMensaje(actual);
+      ajustarTextos(capa.msg);
     }
   });
 
-  // Atajos de teclado discretos (por si el TV es un portátil): ← → espacio
+  // Atajos de teclado discretos (por si el TV es un portátil): ← → espacio F
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') avanzar();
     else if (e.key === 'ArrowLeft') retroceder();
     else if (e.key === ' ') { e.preventDefault(); pausar(!pausado); }
-    else if (e.key.toLowerCase() === 'f') alternarPantallaCompleta();
+    else if (e.key && e.key.toLowerCase() === 'f') alternarPantallaCompleta();
   });
-
 }
 
 // ---------- Ayudantes de interfaz ----------
 
-function crearCapa(escenario) {
-  const el = document.createElement('section');
-  el.className = 'diapositiva';
-  el.setAttribute('aria-live', 'polite');
-  el.innerHTML = `<figure class="marco" style="margin:0">
-      <div class="marco__interior"></div>
-      <span class="esquina esquina--si">${ESQUINA_SVG}</span><span class="esquina esquina--sd">${ESQUINA_SVG}</span>
-      <span class="esquina esquina--ii">${ESQUINA_SVG}</span><span class="esquina esquina--id">${ESQUINA_SVG}</span>
-    </figure><div class="lado"></div>`;
-  escenario.appendChild(el);
-  const lado = el.querySelector('.lado');
-  lado.style.height = '100%';
-  lado.style.minWidth = '0';
-  return { el, marco: el.querySelector('.marco'), lado };
+function crearCapa(zonaFoto, zonaMensajes) {
+  const foto = document.createElement('div');
+  foto.className = 'foto-capa';
+  zonaFoto.appendChild(foto);
+  const msg = document.createElement('div');
+  msg.className = 'msg-capa';
+  zonaMensajes.appendChild(msg);
+  return { foto, msg };
 }
 
 /** Reduce la letra hasta que el texto quepa en su caja. */
@@ -297,25 +297,44 @@ function ajustarTextos(raiz) {
   const ajustar = (el, maxVh, minVh) => {
     if (!el) return;
     const vh = window.innerHeight / 100;
+    const caja = el.closest('.caja');
+    const cont = caja ? caja.parentElement : el.parentElement;
     let tam = maxVh;
     el.style.fontSize = `${tam * vh}px`;
-    const contenedor = el.parentElement;
     const cabe = () => el.scrollHeight <= el.clientHeight + 1
       && el.scrollWidth <= el.clientWidth + 1
-      && contenedor.scrollHeight <= contenedor.clientHeight + 1;
+      && (!caja || caja.offsetHeight <= cont.clientHeight + 1);
     while (!cabe() && tam > minVh) {
-      tam -= 0.25;
+      tam -= 0.2;
       el.style.fontSize = `${tam * vh}px`;
     }
   };
-  ajustar(raiz.querySelector('.mensaje__texto'), 5.6, 2.2);
-  ajustar(raiz.querySelector('.mensaje__grande'), 10, 3);
+  ajustar(raiz.querySelector('.mensaje__texto'), 4.2, 2.4);
+  ajustar(raiz.querySelector('.mensaje__grande'), 6.6, 3);
+}
+
+/** Achica el título y los nombres si no caben en su columna (nombres largos). */
+function ajustarTitulo() {
+  const zona = document.querySelector('.zona-texto');
+  if (!zona) return;
+  const ancho = zona.clientWidth;
+  const vh = window.innerHeight / 100;
+  [['.titulo__nombres', 14, 6, 0], ['.titulo__feliz', 9, 4, 12 * vh]].forEach(([sel, max, min, extra]) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    let tam = max;
+    el.style.fontSize = `${tam * vh}px`;
+    while (el.scrollWidth + extra > ancho && tam > min) {
+      tam -= 0.25;
+      el.style.fontSize = `${tam * vh}px`;
+    }
+  });
 }
 
 function crearDestellos() {
   const cont = document.querySelector('.destellos');
   if (!cont) return;
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 18; i++) {
     const p = document.createElement('i');
     p.style.left = `${Math.random() * 100}%`;
     p.style.top = `${Math.random() * 100}%`;
@@ -326,8 +345,11 @@ function crearDestellos() {
 }
 
 function alternarPantallaCompleta() {
-  if (document.fullscreenElement) document.exitFullscreen?.();
-  else document.documentElement.requestFullscreen?.().catch(() => {});
+  if (document.fullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+  } else if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
 }
 
 function activarPantallaCompleta() {
@@ -335,7 +357,7 @@ function activarPantallaCompleta() {
   if (!btn) return;
   const pintar = () => {
     const activa = Boolean(document.fullscreenElement);
-    btn.innerHTML = activa ? ICONO_REDUCIR : ICONO_AMPLIAR;
+    btn.innerHTML = activa ? SVG.reducir : SVG.ampliar;
     btn.setAttribute('aria-label', activa ? 'Salir de pantalla completa' : 'Pantalla completa');
     btn.title = btn.getAttribute('aria-label');
   };
@@ -353,7 +375,7 @@ function ocultarCursorInactivo() {
     t = setTimeout(() => {
       document.body.classList.add('cursor-oculto');
       document.body.classList.remove('mostrar-controles');
-    }, 2500);
+    }, 3000);
   };
   ['mousemove', 'touchstart', 'keydown'].forEach((e) => document.addEventListener(e, mover, { passive: true }));
   document.body.classList.add('cursor-oculto');
@@ -361,7 +383,7 @@ function ocultarCursorInactivo() {
 
 async function mantenerPantallaEncendida() {
   if (!('wakeLock' in navigator)) return;
-  const pedir = async () => { try { await navigator.wakeLock.request('screen'); } catch {} };
+  const pedir = async () => { try { await navigator.wakeLock.request('screen'); } catch (e) { /* sin soporte */ } };
   await pedir();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pedir(); });
 }

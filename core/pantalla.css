@@ -1,147 +1,162 @@
-/* Pantalla del TV: solo foto, mensaje e indicador. Pensada para 16:9. */
+/* Pantalla del TV: foto inclinada a la izquierda, título y mensaje a la derecha.
+   Evita CSS moderno (color-mix, inset, flex gap) para que funcione en navegadores de TV. */
 body.pantalla {
-  height: 100vh; width: 100vw; overflow: hidden;
-  display: grid; grid-template-rows: auto 1fr auto;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(var(--oro-rgb), 0.1), transparent 60%),
-    radial-gradient(ellipse at 50% 120%, rgba(var(--oro-rgb), 0.08), transparent 55%),
-    var(--fondo);
+  height: 100vh; width: 100vw; overflow: hidden; position: relative;
+  background-color: #000;
+  background-image: var(--fondo-imagen, none);
+  background-position: center; background-size: cover; background-repeat: no-repeat;
   user-select: none;
 }
 body.pantalla.cursor-oculto, body.pantalla.cursor-oculto * { cursor: none !important; }
 
-/* Marco dorado de toda la pantalla */
-body.pantalla::before {
-  content: ''; position: fixed; top: 1.6vh; right: 1.2vw; bottom: 1.6vh; left: 1.2vw; pointer-events: none; z-index: 0;
-  border: 1px solid rgba(var(--oro-rgb), 0.35);
-  box-shadow: inset 0 0 0 .5vh var(--fondo), inset 0 0 0 calc(.5vh + 1px) rgba(var(--oro-rgb), 0.18);
-}
-
-/* Destellos sutiles */
+/* Destellos que titilan sobre el fondo */
 .destellos { position: fixed; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; z-index: 0; }
 .destellos i {
   position: absolute; width: 3px; height: 3px; border-radius: 50%;
-  background: var(--oro-claro); box-shadow: 0 0 6px var(--oro-claro);
+  background: var(--oro-claro); box-shadow: 0 0 8px var(--oro-claro);
   opacity: 0; animation: titilar var(--d, 6s) ease-in-out infinite; animation-delay: var(--r, 0s);
 }
-@keyframes titilar { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: .7; transform: scale(1); } }
+@keyframes titilar { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: .9; transform: scale(1); } }
 
-/* Encabezado */
-.encabezado { position: relative; z-index: 1; text-align: center; padding: 3.4vh 0 1.4vh; line-height: 1; }
-.encabezado__titulo {
-  margin: 0; font-family: var(--fuente-display); font-weight: 600;
-  font-size: 2.6vh; letter-spacing: .45em; text-transform: uppercase; color: var(--oro);
-  padding-left: .45em;
-}
-.encabezado__nombres {
-  margin: .4vh 0 0; font-family: var(--fuente-script); font-weight: 400;
-  font-size: 9vh; line-height: 1.15; padding: 0 .3em;
-  filter: drop-shadow(0 .4vh 1.4vh rgba(0, 0, 0, .6));
-}
-.encabezado .ornamento { font-size: 1.6vh; margin-top: .6vh; }
+/* Corazones decorativos */
+.adorno { position: absolute; z-index: 1; color: var(--oro); pointer-events: none; }
+.adorno svg { width: 100%; height: 100%; display: block; }
+.adorno--1 { width: 5.5vh; height: 5.5vh; left: 44vw; top: 5vh; transform: rotate(-12deg); }
+.adorno--2 { width: 4vh; height: 4vh; left: 47vw; top: 76vh; transform: rotate(10deg); }
+.adorno--3 { width: 4vh; height: 4vh; left: 12vw; top: 9vh; transform: rotate(-8deg); opacity: .85; }
 
-/* Escenario con dos diapositivas que se cruzan */
-.escenario { position: relative; z-index: 1; margin: 1.5vh 5.5vw 0; min-height: 0; }
-.diapositiva {
+/* Distribución principal */
+.escenario {
+  position: absolute; z-index: 2; top: 4vh; bottom: 13vh; left: 3vw; right: 4vw;
+  display: grid; grid-template-columns: 52% 48%; grid-template-rows: 100%;
+}
+
+/* ---------- Columna de la foto ---------- */
+.zona-foto { position: relative; height: 100%; }
+.foto-capa {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 4.5vw; align-items: stretch;
-  opacity: 0; transition: opacity 1.6s ease; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 1.4s ease;
 }
-.diapositiva.activa { opacity: 1; }
-.diapositiva.activa .marco { animation: entrarMarco 1.6s ease both; }
-.diapositiva.activa .mensaje { animation: entrarMensaje 1.8s .25s ease both; }
-@keyframes entrarMarco { from { transform: translateY(1.2vh) scale(.985); } to { transform: none; } }
-@keyframes entrarMensaje { from { opacity: 0; transform: translateX(2vw); } to { opacity: 1; transform: none; } }
+.foto-capa.activa { opacity: 1; }
+.foto-capa.activa .marco { animation: entrarMarco 1.4s ease both; }
+@keyframes entrarMarco {
+  from { transform: rotate(var(--giro, -3deg)) translateY(2vh) scale(.97); }
+  to { transform: rotate(var(--giro, -3deg)); }
+}
 
-/* Marco de la foto */
 .marco {
-  position: relative; height: 100%; max-height: 100%;
-  padding: 1.1vh; border: 2px solid var(--oro);
-  background: #000;
-  box-shadow:
-    0 0 0 .7vh var(--fondo),
-    0 0 0 calc(.7vh + 1px) rgba(var(--oro-rgb), 0.55),
-    0 3vh 8vh rgba(0, 0, 0, .85),
-    0 0 9vh rgba(var(--oro-rgb), 0.14);
+  margin: 0; display: inline-block; position: relative;
+  padding: .6vh; border-radius: 2.4vh;
+  background: var(--degradado-oro);
+  transform: rotate(var(--giro, -3deg));
+  box-shadow: 0 0 3.5vh rgba(var(--oro-rgb), .45), 0 3vh 7vh rgba(0, 0, 0, .85);
 }
-.marco__interior { position: relative; width: 100%; height: 100%; overflow: hidden; background: #050505; }
-.marco__fondo {
-  position: absolute; top: -8%; right: -8%; bottom: -8%; left: -8%; width: 116%; height: 116%; max-width: none;
-  object-fit: cover; filter: blur(28px) brightness(.45) saturate(1.1);
-}
-.marco__foto {
-  position: relative; width: 100%; height: 100%; object-fit: contain;
-  transform-origin: center;
-}
-.diapositiva.activa .marco__foto { animation: acercar var(--duracion, 90s) linear forwards; }
+.marco__recorte { border-radius: 1.9vh; overflow: hidden; background: #000; }
+.marco__foto { display: block; width: auto; height: auto; max-width: 44vw; max-height: 72vh; }
+.foto-capa.activa .marco__foto { animation: acercar var(--duracion, 90s) linear forwards; }
 body.pausado .marco__foto { animation-play-state: paused !important; }
-@keyframes acercar { from { transform: scale(1); } to { transform: scale(1.045); } }
-
-.esquina { position: absolute; width: 5.5vh; height: 5.5vh; color: var(--oro); z-index: 2; }
-.esquina svg { width: 100%; height: 100%; }
-.esquina--si { top: -1.6vh; left: -1.6vh; }
-.esquina--sd { top: -1.6vh; right: -1.6vh; transform: scaleX(-1); }
-.esquina--ii { bottom: -1.6vh; left: -1.6vh; transform: scaleY(-1); }
-.esquina--id { bottom: -1.6vh; right: -1.6vh; transform: scale(-1, -1); }
+@keyframes acercar { from { transform: scale(1); } to { transform: scale(1.05); } }
 
 .marco__vacio {
-  position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; place-content: center; gap: 2vh; text-align: center;
-  font-family: var(--fuente-serif); font-style: italic; font-size: 3vh; color: var(--texto-suave);
+  width: 40vw; height: 52vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; font-family: var(--fuente-ui); font-size: 2.6vh; color: rgba(255, 255, 255, .8);
 }
-.marco__vacio svg { width: 12vh; height: 12vh; margin: 0 auto; color: var(--oro); opacity: .8; }
+.marco__vacio svg { width: 11vh; height: 11vh; margin-bottom: 2.5vh; color: var(--oro); }
 
-/* Mensaje */
-.mensaje {
-  height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; min-width: 0; padding: 2vh 0;
+/* ---------- Columna del texto ---------- */
+.zona-texto {
+  height: 100%; min-width: 0; padding-left: 3vw;
+  display: flex; flex-direction: column; justify-content: center; align-items: stretch;
 }
-.mensaje__comilla {
-  font-family: var(--fuente-serif); font-size: 16vh; line-height: .6; height: 7vh;
-  color: var(--oro); opacity: .9;
+.titulo { text-align: center; position: relative; }
+.titulo__fila { display: flex; align-items: center; justify-content: center; }
+.titulo__feliz {
+  margin: 0 1.2vw; font-family: var(--fuente-script); font-weight: 400;
+  font-size: 9vh; line-height: 1.1; color: #fff; white-space: nowrap;
+  text-shadow: 0 .4vh 1.6vh rgba(0, 0, 0, .8);
+}
+.destello-trazos { width: 5vh; height: 5vh; color: var(--oro); flex: none; }
+.destello-trazos--der { transform: scaleX(-1); }
+.titulo__nombres {
+  margin: -1vh 0 0; font-family: var(--fuente-script); font-weight: 400;
+  font-size: 14vh; line-height: 1.15; padding: 0 .2em; white-space: nowrap;
+  filter: drop-shadow(0 .5vh 1.4vh rgba(0, 0, 0, .8));
+}
+.titulo__trazo { position: relative; height: 8vh; margin-top: -1.5vh; }
+.titulo__trazo .trazo { position: absolute; left: 10%; width: 80%; top: 0; height: 3vh; color: var(--oro); }
+.titulo__trazo .corazon { position: absolute; left: 50%; top: 1.6vh; width: 5.5vh; height: 5.5vh; margin-left: -2.75vh; color: var(--oro); }
+
+.mensajes { position: relative; height: 34vh; margin-top: 1.5vh; }
+.msg-capa {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 1.4s ease;
+}
+.msg-capa.activa { opacity: 1; }
+.msg-capa.activa .caja { animation: entrarCaja 1.6s .2s ease both; }
+@keyframes entrarCaja { from { opacity: 0; transform: translateY(1.5vh); } to { opacity: 1; transform: none; } }
+
+.caja {
+  width: 100%; max-height: 100%; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3vh 2.5vw 2.2vh; text-align: center;
+  border: 2px solid var(--oro); border-radius: 2.4vh;
+  background: rgba(0, 0, 0, .78);
+  box-shadow: 0 0 2.5vh rgba(var(--oro-rgb), .35), inset 0 0 2vh rgba(var(--oro-rgb), .12);
 }
 .mensaje__texto {
-  margin: 1vh 0 0; width: 100%; max-height: 52vh; overflow: hidden;
-  font-family: var(--fuente-serif); font-style: italic; font-weight: 500;
-  font-size: 5vh; line-height: 1.28; color: var(--texto);
-  overflow-wrap: anywhere;
+  margin: 0; width: 100%; max-height: 23vh; overflow: hidden;
+  font-family: var(--fuente-ui); font-weight: 500; font-size: 3.8vh; line-height: 1.35; color: #fff;
+  word-wrap: break-word;
 }
-.mensaje__autor {
-  margin: 3.5vh 0 0; font-family: var(--fuente-display); font-size: 2.4vh;
-  letter-spacing: .18em; text-transform: uppercase; color: var(--oro);
-}
-.mensaje .ornamento { font-size: 1.4vh; margin-top: 3vh; }
 .mensaje__grande {
-  margin: 0; width: 100%; font-family: var(--fuente-display); font-weight: 700;
-  font-size: 9vh; line-height: 1.12; letter-spacing: .04em;
-  filter: drop-shadow(0 .5vh 1.6vh rgba(0, 0, 0, .7));
+  margin: 0; width: 100%; font-family: var(--fuente-ui); font-weight: 700;
+  font-size: 6.4vh; line-height: 1.15; letter-spacing: .01em; color: #fff; white-space: nowrap;
 }
+.caja__autor {
+  margin: 1.4vh 0 0; font-family: var(--fuente-script); font-size: 4.2vh; line-height: 1.1; color: var(--oro-claro);
+}
+.caja__adorno { display: flex; align-items: center; justify-content: center; margin-top: 1.2vh; color: var(--oro); }
+.caja__adorno::before, .caja__adorno::after {
+  content: ''; height: 2px; width: 7vw; border-radius: 2px;
+}
+.caja__adorno::before { background: linear-gradient(90deg, transparent, var(--oro)); margin-right: 1vw; }
+.caja__adorno::after { background: linear-gradient(90deg, var(--oro), transparent); margin-left: 1vw; }
+.caja__adorno svg { width: 4vh; height: 4vh; }
 
-/* Indicador inferior */
+/* ---------- Indicador inferior ---------- */
 .indicador {
-  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: .9vh;
-  padding: 2.6vh 0 3.4vh; transition: opacity .8s;
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 4vh;
+  display: flex; align-items: center; justify-content: center; transition: opacity .8s;
 }
 .indicador.oculto { opacity: 0; }
-.indicador__barra { width: 18vw; height: 2px; background: rgba(var(--oro-rgb), 0.18); border-radius: 2px; overflow: hidden; }
-.indicador__barra span { display: block; height: 100%; width: 0; background: var(--degradado-oro); transition: width .3s linear; }
+.indicador__linea { height: 2px; width: 18vw; background: linear-gradient(90deg, transparent, var(--oro)); }
+.indicador__linea--der { background: linear-gradient(90deg, var(--oro), transparent); }
 .indicador__texto {
-  margin: 0; font-family: var(--fuente-ui); font-size: 1.5vh; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--texto-suave); opacity: .75;
+  margin: 0 1.6vw; display: flex; align-items: center;
+  font-family: var(--fuente-ui); font-size: 2.6vh; color: #fff; white-space: nowrap;
 }
+.indicador__texto svg { width: 3.4vh; height: 3.4vh; color: var(--oro); margin-right: 1vw; }
+.indicador__tiempo { margin-left: .6vw; font-weight: 700; color: var(--oro-claro); font-variant-numeric: tabular-nums; }
 
 /* Botón de pantalla completa: discreto y se esconde solo */
 .btn-pantalla-completa {
   position: fixed; right: 2.4vw; bottom: 3vh; z-index: 5;
-  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--borde); background: rgba(0, 0, 0, .55); color: var(--oro);
   cursor: pointer; opacity: 0; transition: opacity .5s;
 }
-body.pantalla.mostrar-controles .btn-pantalla-completa,
-.btn-pantalla-completa:focus { opacity: .9; }
+body.pantalla.mostrar-controles .btn-pantalla-completa { opacity: .9; }
 .btn-pantalla-completa svg { width: 20px; height: 20px; }
 
-/* Pantallas verticales o muy angostas (por si se prueba en un celular) */
+/* Pantallas verticales (por si se prueba en un celular) */
 @media (max-aspect-ratio: 1/1) {
-  .diapositiva { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr); gap: 3vh; }
-  .mensaje__grande { font-size: 6vh; }
+  .escenario { grid-template-columns: 100%; grid-template-rows: 50% 50%; }
+  .zona-texto { padding-left: 0; }
+  .marco__foto { max-width: 86vw; max-height: 40vh; }
+  .titulo__feliz { font-size: 5vh; }
+  .titulo__nombres { font-size: 8vh; }
+  .mensajes { height: 20vh; }
+  .adorno { display: none; }
 }

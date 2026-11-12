@@ -23,6 +23,9 @@ export default {
   // Enlace corto opcional para invitados (debe existir el redirect en vercel.json), ej. '/ana'
   rutaCorta: '/cata-y-daniel',
 
+  // Imagen de fondo de la pantalla del TV (16:9). Puedes poner una propia en la carpeta del evento.
+  fondoImagen: '/core/fondos/globos-dorados.jpg',
+
   // Colores (opcional). Cambia aquí para otro estilo de fiesta.
   tema: {
     fondo: '#070707',

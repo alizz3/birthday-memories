@@ -8,24 +8,44 @@
   <link rel="icon" href="/core/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@1,500&family=Great+Vibes&family=Montserrat:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="/core/base.css">
   <link rel="stylesheet" href="/core/pantalla.css">
 </head>
 <body class="pantalla">
   <div class="destellos" aria-hidden="true"></div>
 
-  <header class="encabezado">
-    <p class="encabezado__titulo" data-texto="titulo"></p>
-    <h1 class="encabezado__nombres texto-oro" data-texto="nombres"></h1>
-    <div class="ornamento" aria-hidden="true"><span></span></div>
-  </header>
+  <main class="escenario">
+    <div class="zona-foto"></div>
+    <div class="zona-texto">
+      <header class="titulo">
+        <div class="titulo__fila">
+          <span class="destello-trazos" data-svg="trazos"></span>
+          <p class="titulo__feliz" data-texto="titulo"></p>
+          <span class="destello-trazos destello-trazos--der" data-svg="trazos"></span>
+        </div>
+        <h1 class="titulo__nombres texto-oro" data-texto="nombres"></h1>
+        <div class="titulo__trazo" aria-hidden="true">
+          <span class="trazo" data-svg="trazo"></span>
+          <span class="corazon" data-svg="corazon"></span>
+        </div>
+      </header>
+      <div class="mensajes" aria-live="polite"></div>
+    </div>
+  </main>
 
-  <main class="escenario"></main>
+  <span class="adorno adorno--1" data-svg="corazon" aria-hidden="true"></span>
+  <span class="adorno adorno--2" data-svg="corazon" aria-hidden="true"></span>
+  <span class="adorno adorno--3" data-svg="corazon" aria-hidden="true"></span>
 
   <footer class="indicador oculto" aria-hidden="true">
-    <div class="indicador__barra"><span></span></div>
-    <p class="indicador__texto"></p>
+    <span class="indicador__linea"></span>
+    <p class="indicador__texto">
+      <span data-svg="reloj"></span>
+      <span class="indicador__etiqueta">Siguiente foto en:</span>
+      <strong class="indicador__tiempo"></strong>
+    </p>
+    <span class="indicador__linea indicador__linea--der"></span>
   </footer>
 
   <button class="btn-pantalla-completa" type="button" aria-label="Pantalla completa"></button>

@@ -43,9 +43,9 @@ export async function crearDatos(config) {
 
 export const limitarIntervalo = (seg) => Math.min(120, Math.max(60, Number(seg) || 90));
 
-export function formatearTiempo(ms) {
+export function formatearTiempo(ms, dosDigitos = false) {
   const total = Math.max(0, Math.ceil(ms / 1000));
-  const m = Math.floor(total / 60);
+  const m = dosDigitos ? String(Math.floor(total / 60)).padStart(2, '0') : Math.floor(total / 60);
   const s = String(total % 60).padStart(2, '0');
   return `${m}:${s}`;
 }
