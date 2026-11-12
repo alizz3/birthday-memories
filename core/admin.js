@@ -140,7 +140,7 @@ export async function iniciarAdmin(config) {
 
     $('#grilla').innerHTML = lista.map((f) => {
       const grupo = f.grupoTotal > 1 ? `<span class="insignia">Foto ${f.grupoIndice + 1} de ${f.grupoTotal}</span>` : '';
-      const msg = f.mensaje ? escaparHTML(f.mensaje) : '<em>Sin mensaje (se verá «¡FELIZ CUMPLEAÑOS!»)</em>';
+      const msg = f.mensaje ? escaparHTML(f.mensaje) : '<em>Sin mensaje (el título se verá en grande)</em>';
       const acciones = f.estado === 'pendiente'
         ? `<button class="btn btn--oro" data-accion="aprobar">✓ Aprobar</button>
            <button class="btn" data-accion="editar">Editar</button>
@@ -187,7 +187,7 @@ export async function iniciarAdmin(config) {
         if (!confirm(`¿Eliminar definitivamente la foto de ${foto.nombre || 'este invitado'}?`)) return;
         await datos.eliminar(id); avisar('Foto eliminada');
       } else if (accion === 'editar') {
-        const nuevo = prompt('Mensaje (déjalo vacío para mostrar «¡FELIZ CUMPLEAÑOS!»):', foto.mensaje || '');
+        const nuevo = prompt('Mensaje (déjalo vacío para que solo salga el título en grande):', foto.mensaje || '');
         if (nuevo === null) return;
         await datos.editarMensaje(id, nuevo.trim().slice(0, config.maxCaracteresMensaje || 280));
         avisar('Mensaje actualizado');

@@ -6,7 +6,6 @@ export default {
   // Textos de la pantalla
   titulo: '¡Feliz cumpleaños!',
   nombres: 'Daniel & Cata',
-  mensajeVacio: '¡FELIZ CUMPLEAÑOS!', // se muestra en grande cuando la foto no trae mensaje
   textoSinFotos: 'Las fotos aparecerán aquí muy pronto',
 
   // Textos de la página de invitados

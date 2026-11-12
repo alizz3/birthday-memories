@@ -12,7 +12,7 @@ Es una **plantilla reutilizable**: el núcleo (`core/`) es el mismo para todas l
 | Pantalla | `/eventos/<Evento>/pantalla` | El TV. Solo la foto, el mensaje y el indicador de la siguiente foto |
 | Panel | `/eventos/<Evento>/admin` | Tú (login con Google) |
 
-**Pantalla del TV:** foto grande enmarcada a la izquierda y el mensaje a la derecha (si no hay mensaje sale «¡FELIZ CUMPLEAÑOS!» en grande). Las fotos nuevas aprobadas pasan primero y luego todas rotan en bucle. El botón de pantalla completa aparece solo al mover el mouse (o pulsa `F`). Atajos invisibles: `←` `→` y espacio para pausar.
+**Pantalla del TV:** foto inclinada con borde dorado a la izquierda; a la derecha el título y, debajo, el mensaje firmado. Si la foto no trae mensaje, el título se agranda y «Enviada por …» aparece debajo de la foto. Las fotos nuevas aprobadas pasan primero y luego todas rotan en bucle. El botón de pantalla completa aparece solo al mover el mouse (o pulsa `F`). Atajos invisibles: `←` `→` y espacio para pausar.
 
 **Panel:** aprobar, aprobar todas, editar el mensaje, ocultar, eliminar, «Mostrar ahora», anterior/siguiente, pausar, tiempo por foto (1:00 a 2:00), abrir o cerrar la recepción de fotos, recargar el TV, enlace y QR para invitados, y ver qué foto está en pantalla.
 

@@ -90,15 +90,35 @@ export async function iniciarPantalla(config) {
   }
 
   // ---- Render ----
+  const textoDe = (foto, campo) => ((foto && foto[campo]) || '').trim();
+
+  // Con mensaje: el texto va debajo del título, firmado con el nombre.
+  // Sin mensaje: no hay texto (el título se agranda) y el nombre va debajo de la foto.
   function htmlMensaje(foto) {
-    const msg = ((foto && foto.mensaje) || '').trim();
-    const nombre = ((foto && foto.nombre) || '').trim();
-    const cuerpo = msg
-      ? `<p class="mensaje__texto">${escaparHTML(msg)}</p>`
-      : `<p class="mensaje__grande">${escaparHTML(config.mensajeVacio)}</p>`;
-    return `<div class="caja">${cuerpo}
-      ${nombre ? `<p class="caja__autor">${escaparHTML(nombre)}</p>` : ''}
-      <div class="caja__adorno" aria-hidden="true">${SVG.corazon}</div></div>`;
+    const msg = textoDe(foto, 'mensaje');
+    if (!msg) return '';
+    const nombre = textoDe(foto, 'nombre');
+    return `<div class="mensaje"><p class="mensaje__texto">${escaparHTML(msg)}</p>
+      ${nombre ? `<p class="mensaje__autor">${escaparHTML(nombre)}</p>` : ''}</div>`;
+  }
+
+  function htmlPie(foto) {
+    const nombre = textoDe(foto, 'nombre');
+    if (!foto || textoDe(foto, 'mensaje') || !nombre) return '';
+    return `<p class="foto-pie">Enviada por <span>${escaparHTML(nombre)}</span></p>`;
+  }
+
+  function pintarTextos(capa, foto) {
+    capa.msg.innerHTML = htmlMensaje(foto);
+    const pie = capa.foto.querySelector('.foto-pie-zona');
+    if (pie) pie.innerHTML = htmlPie(foto);
+    capa.foto.classList.toggle('con-pie', Boolean(htmlPie(foto)));
+    capa.conMensaje = Boolean(textoDe(foto, 'mensaje'));
+  }
+
+  function aplicarModo(capa) {
+    document.body.classList.toggle('sin-mensaje', !capa.conMensaje);
+    ajustarTextos(capa.msg);
   }
 
   function pintarCapa(capa, foto, src) {
@@ -107,7 +127,8 @@ export async function iniciarPantalla(config) {
     capa.foto.innerHTML = foto
       ? `<figure class="marco"><div class="marco__recorte"><img class="marco__foto" src="${src}" alt="${escaparHTML(alt)}"></div></figure>`
       : `<figure class="marco"><div class="marco__recorte"><div class="marco__vacio">${SVG.camara}<span>${escaparHTML(config.textoSinFotos)}</span></div></div></figure>`;
-    capa.msg.innerHTML = htmlMensaje(foto);
+    capa.foto.insertAdjacentHTML('beforeend', '<div class="foto-pie-zona"></div>');
+    pintarTextos(capa, foto);
     capa.foto.style.setProperty('--duracion', `${intervaloMs / 1000 + 4}s`);
   }
 
@@ -121,7 +142,7 @@ export async function iniciarPantalla(config) {
     });
     vieja.foto.classList.remove('activa');
     vieja.msg.classList.remove('activa');
-    ajustarTextos(capaNueva.msg);
+    aplicarModo(capaNueva);
   }
 
   function mostrarVacio() {
@@ -266,8 +287,8 @@ export async function iniciarPantalla(config) {
     if ((actual.mensaje || '') !== mostradoMensaje) {
       mostradoMensaje = actual.mensaje || '';
       const capa = capas[capaActiva];
-      capa.msg.innerHTML = htmlMensaje(actual);
-      ajustarTextos(capa.msg);
+      pintarTextos(capa, actual);
+      aplicarModo(capa);
     }
   });
 
@@ -292,25 +313,19 @@ function crearCapa(zonaFoto, zonaMensajes) {
   return { foto, msg };
 }
 
-/** Reduce la letra hasta que el texto quepa en su caja. */
-function ajustarTextos(raiz) {
-  const ajustar = (el, maxVh, minVh) => {
-    if (!el) return;
-    const vh = window.innerHeight / 100;
-    const caja = el.closest('.caja');
-    const cont = caja ? caja.parentElement : el.parentElement;
-    let tam = maxVh;
+/** Reduce la letra del mensaje hasta que quepa (con el nombre) en su espacio. */
+function ajustarTextos(capaMsg) {
+  const el = capaMsg.querySelector('.mensaje__texto');
+  if (!el) return;
+  const bloque = capaMsg.querySelector('.mensaje');
+  const vh = window.innerHeight / 100;
+  const alto = capaMsg.parentElement.clientHeight || 34 * vh;
+  let tam = 4.6;
+  el.style.fontSize = `${tam * vh}px`;
+  while ((bloque.offsetHeight > alto + 1 || el.scrollWidth > el.clientWidth + 1) && tam > 2.4) {
+    tam -= 0.2;
     el.style.fontSize = `${tam * vh}px`;
-    const cabe = () => el.scrollHeight <= el.clientHeight + 1
-      && el.scrollWidth <= el.clientWidth + 1
-      && (!caja || caja.offsetHeight <= cont.clientHeight + 1);
-    while (!cabe() && tam > minVh) {
-      tam -= 0.2;
-      el.style.fontSize = `${tam * vh}px`;
-    }
-  };
-  ajustar(raiz.querySelector('.mensaje__texto'), 4.2, 2.4);
-  ajustar(raiz.querySelector('.mensaje__grande'), 6.6, 3);
+  }
 }
 
 /** Achica el título y los nombres si no caben en su columna (nombres largos). */
@@ -319,7 +334,7 @@ function ajustarTitulo() {
   if (!zona) return;
   const ancho = zona.clientWidth;
   const vh = window.innerHeight / 100;
-  [['.titulo__nombres', 14, 6, 0], ['.titulo__feliz', 9, 4, 12 * vh]].forEach(([sel, max, min, extra]) => {
+  [['.titulo__nombres', 11.5, 6, 0], ['.titulo__feliz', 7.5, 4, 12 * vh]].forEach(([sel, max, min, extra]) => {
     const el = document.querySelector(sel);
     if (!el) return;
     let tam = max;
@@ -329,6 +344,21 @@ function ajustarTitulo() {
       el.style.fontSize = `${tam * vh}px`;
     }
   });
+  // Cuánto puede crecer el título cuando la foto no trae mensaje (sin salirse de la columna)
+  const titulo = document.querySelector('.titulo');
+  // Ancho real del texto (sin contar el escalado que pueda tener en ese momento)
+  const escalaActual = titulo.getBoundingClientRect().width / (titulo.offsetWidth || 1) || 1;
+  const rango = document.createRange();
+  rango.selectNodeContents(document.querySelector('.titulo__nombres'));
+  const anchoNombres = rango.getBoundingClientRect().width / escalaActual;
+  const anchoFila = Array.prototype.reduce.call(
+    document.querySelector('.titulo__fila').children,
+    (suma, hijo) => suma + hijo.offsetWidth + 2 * parseFloat(getComputedStyle(hijo).marginLeft || 0),
+    0,
+  );
+  const anchoTitulo = Math.max(anchoNombres, anchoFila);
+  const escala = Math.max(1, Math.min(1.4, (ancho * 0.86) / (anchoTitulo || ancho)));
+  titulo.style.setProperty('--escala-grande', escala.toFixed(3));
 }
 
 function crearDestellos() {
