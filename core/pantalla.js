@@ -93,7 +93,7 @@ export async function iniciarPantalla(config) {
   const textoDe = (foto, campo) => ((foto && foto[campo]) || '').trim();
 
   // Con mensaje: el texto va debajo del título, firmado con el nombre.
-  // Sin mensaje: no hay texto (el título se agranda) y el nombre va debajo de la foto.
+  // Sin mensaje: no hay texto y el título se agranda.
   function htmlMensaje(foto) {
     const msg = textoDe(foto, 'mensaje');
     if (!msg) return '';
@@ -102,17 +102,8 @@ export async function iniciarPantalla(config) {
       ${nombre ? `<p class="mensaje__autor">${escaparHTML(nombre)}</p>` : ''}</div>`;
   }
 
-  function htmlPie(foto) {
-    const nombre = textoDe(foto, 'nombre');
-    if (!foto || textoDe(foto, 'mensaje') || !nombre) return '';
-    return `<p class="foto-pie">Enviada por <span>${escaparHTML(nombre)}</span></p>`;
-  }
-
   function pintarTextos(capa, foto) {
     capa.msg.innerHTML = htmlMensaje(foto);
-    const pie = capa.foto.querySelector('.foto-pie-zona');
-    if (pie) pie.innerHTML = htmlPie(foto);
-    capa.foto.classList.toggle('con-pie', Boolean(htmlPie(foto)));
     capa.conMensaje = Boolean(textoDe(foto, 'mensaje'));
   }
 
@@ -138,7 +129,6 @@ export async function iniciarPantalla(config) {
     capa.foto.innerHTML = foto
       ? `<figure class="marco"><div class="marco__recorte"><img class="marco__foto" src="${src}" alt="${escaparHTML(alt)}"></div></figure>`
       : `<figure class="marco"><div class="marco__recorte"><div class="marco__vacio">${SVG.camara}<span>${escaparHTML(config.textoSinFotos)}</span></div></div></figure>`;
-    capa.foto.innerHTML = `<div class="foto-grupo">${capa.foto.innerHTML}<div class="foto-pie-zona"></div></div>`;
     pintarTextos(capa, foto);
     capa.foto.style.setProperty('--duracion', `${intervaloMs / 1000 + 4}s`);
   }
@@ -161,8 +151,7 @@ export async function iniciarPantalla(config) {
   // foto + título queden centrados juntos en la pantalla.
   function ajustarAnchoFoto(capa) {
     const marco = capa.foto.querySelector('.marco');
-    const pie = capa.foto.querySelector('.foto-pie');
-    const ancho = Math.max(marco ? marco.offsetWidth : 0, pie ? pie.offsetWidth : 0);
+    const ancho = marco ? marco.offsetWidth : 0;
     if (ancho) zonaFoto.style.width = `${Math.ceil(ancho + window.innerWidth * 0.02)}px`;
   }
 
