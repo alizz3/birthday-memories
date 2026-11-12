@@ -4,7 +4,7 @@
 // Uso:
 //   node scripts/nuevo-evento.mjs <Carpeta-del-evento> "<Nombres>" [ruta-corta] [dominio]
 // Ejemplo:
-//   node scripts/nuevo-evento.mjs Ana-15-Dic-2026 "Ana" /ana https://birthday-memories.vercel.app
+//   node scripts/nuevo-evento.mjs Ana-15-Dic-2026 "Ana" /ana https://birthday-memories-blond.vercel.app
 //
 // Luego: revisa eventos/<Carpeta>/evento.config.js (textos, colores) y despliega.
 import { cpSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
-const [id, nombres, rutaCortaArg = '', dominio = 'https://birthday-memories.vercel.app'] = process.argv.slice(2);
+const [id, nombres, rutaCortaArg = '', dominio = 'https://birthday-memories-blond.vercel.app'] = process.argv.slice(2);
 
 if (!id || !nombres) {
   console.error('Uso: node scripts/nuevo-evento.mjs <Carpeta-del-evento> "<Nombres>" [ruta-corta] [dominio]');

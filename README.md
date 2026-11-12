@@ -66,7 +66,7 @@ Las pestañas se sincronizan entre sí. Nada se guarda.
    firebase deploy --only firestore
    ```
    (o pega `firestore.rules` en Consola → Firestore → Reglas → Publicar).
-4. **Vercel:** importa el repo de GitHub, sin framework ni build. Si el dominio no es `birthday-memories.vercel.app`, corrige `og:image` en el `index.html` de cada evento.
+4. **Vercel:** importa el repo de GitHub, sin framework ni build. Dominio actual: `birthday-memories-blond.vercel.app` (si cambia, corrige `og:image` en el `index.html` de cada evento y el dominio por defecto en `scripts/nuevo-evento.mjs`).
 5. **Abre el panel del evento una vez** y entra con Google: eso crea el evento en Firestore y abre la recepción de fotos. Hasta entonces los invitados ven «Por ahora no se reciben fotos».
 
 ## El día de la fiesta
