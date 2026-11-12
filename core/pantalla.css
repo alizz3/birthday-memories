@@ -153,3 +153,13 @@ body.pantalla.mostrar-controles .btn-pantalla-completa { opacity: .9; }
   body.titulo-grande .titulo { transform: none; }
   .adorno { display: none; }
 }
+
+/* Música: el reproductor de YouTube queda invisible; solo suena */
+.reproductor-oculto { position: fixed; left: 0; bottom: 0; width: 200px; height: 200px; opacity: 0; pointer-events: none; z-index: -1; }
+.btn-musica {
+  position: fixed; left: 2.4vw; bottom: 3vh; z-index: 6;
+  padding: 1.2vh 1.6vw; border-radius: 4vh; border: 2px solid var(--oro);
+  background: rgba(0, 0, 0, .75); color: #fff; font: 600 2.2vh var(--fuente-ui); cursor: pointer;
+  box-shadow: 0 0 2vh rgba(var(--oro-rgb), .4);
+}
+.btn-musica:focus { outline: 3px solid var(--oro-claro); outline-offset: 3px; }

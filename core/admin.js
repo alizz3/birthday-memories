@@ -2,6 +2,7 @@
 import {
   aplicarEvento, crearDatos, limitarIntervalo, formatearTiempo, escaparHTML, enModoDemo, activarInterruptorTema,
 } from './comun.js';
+import { leerEnlaceMusica } from './musica-tv.js';
 
 export async function iniciarAdmin(config) {
   aplicarEvento(config);
@@ -92,8 +93,65 @@ export async function iniciarAdmin(config) {
     datos.actualizarEvento({ recibiendoFotos: e.target.checked }).catch(errorGeneral);
   });
 
+  // ---------- Música ----------
+  const musicaActual = () => (evento && evento.musica) || null;
+  const volumenMusica = $('#musica-volumen');
+  $('#musica-poner').addEventListener('click', () => {
+    const datosEnlace = leerEnlaceMusica($('#musica-enlace').value);
+    if (!datosEnlace) { avisar('Ese enlace no es de YouTube o YouTube Music'); return; }
+    const anterior = musicaActual() || {};
+    datos.actualizarEvento({
+      musica: {
+        ...datosEnlace,
+        enlace: $('#musica-enlace').value.trim().slice(0, 500),
+        reproduciendo: true,
+        volumen: typeof anterior.volumen === 'number' ? anterior.volumen : Number(volumenMusica.value),
+        aleatorio: $('#musica-aleatorio').checked,
+        comando: null,
+      },
+    }).then(() => avisar('Música enviada al TV')).catch(errorGeneral);
+  });
+  $('#musica-play').addEventListener('click', () => {
+    const m = musicaActual();
+    if (!m) { avisar('Primero pega un enlace y dale «Poner»'); return; }
+    datos.actualizarEvento({ 'musica.reproduciendo': m.reproduciendo === false }).catch(errorGeneral);
+  });
+  document.querySelectorAll('[data-musica]').forEach((b) => b.addEventListener('click', () => {
+    if (!musicaActual()) return;
+    datos.actualizarEvento({ 'musica.comando': { tipo: b.dataset.musica, nonce: Math.random().toString(36).slice(2) } })
+      .catch(errorGeneral);
+  }));
+  volumenMusica.addEventListener('input', () => { $('#musica-volumen-valor').textContent = volumenMusica.value; });
+  volumenMusica.addEventListener('change', () => {
+    if (musicaActual()) datos.actualizarEvento({ 'musica.volumen': Number(volumenMusica.value) }).catch(errorGeneral);
+  });
+  $('#musica-aleatorio').addEventListener('change', (e) => {
+    if (musicaActual()) datos.actualizarEvento({ 'musica.aleatorio': e.target.checked }).catch(errorGeneral);
+  });
+  $('#musica-quitar').addEventListener('click', () => {
+    datos.actualizarEvento({ musica: null }).then(() => avisar('Música quitada')).catch(errorGeneral);
+  });
+
+  function pintarMusica() {
+    const m = musicaActual();
+    const sonando = evento && evento.enVivo && evento.enVivo.cancion;
+    $('#musica-play').textContent = m && m.reproduciendo !== false ? '⏸ Pausar' : '▶ Reproducir';
+    $('#musica-ahora').textContent = !m ? 'Sin música'
+      : m.reproduciendo === false ? 'En pausa'
+        : sonando ? `♪ ${sonando}` : 'Cargando en el TV…';
+    if (m && document.activeElement !== volumenMusica && typeof m.volumen === 'number') {
+      volumenMusica.value = m.volumen;
+      $('#musica-volumen-valor').textContent = m.volumen;
+    }
+    if (m) $('#musica-aleatorio').checked = Boolean(m.aleatorio);
+    if (m && m.enlace && document.activeElement !== $('#musica-enlace') && !$('#musica-enlace').value) {
+      $('#musica-enlace').value = m.enlace;
+    }
+  }
+
   function pintarControl() {
     if (!evento) return;
+    pintarMusica();
     $('#pausa').textContent = evento.pausado ? '▶ Reanudar' : '⏸ Pausar';
     if (document.activeElement !== rango) {
       rango.value = limitarIntervalo(evento.intervaloSegundos);
