@@ -21,21 +21,21 @@ body.pantalla.cursor-oculto, body.pantalla.cursor-oculto * { cursor: none !impor
 /* Corazones decorativos */
 .adorno { position: absolute; z-index: 1; color: var(--oro); pointer-events: none; }
 .adorno svg { width: 100%; height: 100%; display: block; }
-.adorno--1 { width: 5.5vh; height: 5.5vh; left: 44vw; top: 5vh; transform: rotate(-12deg); }
-.adorno--2 { width: 4vh; height: 4vh; left: 47vw; top: 76vh; transform: rotate(10deg); }
+.adorno--1 { width: 5.5vh; height: 5.5vh; left: 53vw; top: 6vh; transform: rotate(-12deg); }
+.adorno--2 { width: 4vh; height: 4vh; left: 55vw; top: 80vh; transform: rotate(10deg); }
 .adorno--3 { width: 4vh; height: 4vh; left: 12vw; top: 9vh; transform: rotate(-8deg); opacity: .85; }
 
 /* Distribución principal */
 .escenario {
-  position: absolute; z-index: 2; top: 4vh; bottom: 13vh; left: 3vw; right: 6vw;
-  display: grid; grid-template-columns: 52% 48%; grid-template-rows: 100%;
+  position: absolute; z-index: 2; top: 4vh; bottom: 12vh; left: 5vw; right: 7vw;
+  display: grid; grid-template-columns: 55% 45%; grid-template-rows: 100%;
 }
 
 /* ---------- Columna de la foto ---------- */
 .zona-foto { position: relative; height: 100%; }
 .foto-capa {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-end; justify-content: center; padding-right: 1.5vw;
   opacity: 0; transition: opacity 1.4s ease;
 }
 .foto-capa.activa { opacity: 1; }
@@ -53,7 +53,7 @@ body.pantalla.cursor-oculto, body.pantalla.cursor-oculto * { cursor: none !impor
   box-shadow: 0 0 3.5vh rgba(var(--oro-rgb), .45), 0 3vh 7vh rgba(0, 0, 0, .85);
 }
 .marco__recorte { border-radius: 1.9vh; overflow: hidden; background: #000; }
-.marco__foto { display: block; width: auto; height: auto; max-width: 44vw; max-height: 72vh; }
+.marco__foto { display: block; width: auto; height: auto; max-width: 47vw; max-height: 74vh; }
 .foto-capa.activa .marco__foto { animation: acercar var(--duracion, 90s) linear forwards; }
 body.pausado .marco__foto { animation-play-state: paused !important; }
 @keyframes acercar { from { transform: scale(1); } to { transform: scale(1.05); } }
@@ -66,7 +66,7 @@ body.pausado .marco__foto { animation-play-state: paused !important; }
 
 /* ---------- Columna del texto ---------- */
 .zona-texto {
-  height: 100%; min-width: 0; padding-left: 3vw;
+  height: 100%; min-width: 0; padding-left: 1vw;
   display: flex; flex-direction: column; justify-content: center; align-items: stretch;
 }
 .titulo { text-align: center; position: relative; }
@@ -113,10 +113,11 @@ body.sin-mensaje .mensajes { margin-top: 0; }
 
 /* Sin mensaje: el título crece */
 .titulo { transform-origin: center; transition: transform 1s ease; }
-body.sin-mensaje .titulo { transform: scale(var(--escala-grande, 1.3)); }
+body.titulo-grande .titulo { transform: scale(var(--escala-grande, 1.3)); }
 
 /* «Enviada por …» debajo de la foto (solo cuando no hay mensaje) */
 .foto-capa { flex-direction: column; }
+.foto-grupo { display: flex; flex-direction: column; align-items: center; }
 .foto-pie-zona { flex: none; }
 .foto-pie {
   margin: 3.2vh 0 0; font-family: var(--fuente-ui); font-size: 2.6vh; color: #fff; text-align: center;
@@ -158,6 +159,6 @@ body.pantalla.mostrar-controles .btn-pantalla-completa { opacity: .9; }
   .titulo__feliz { font-size: 5vh; }
   .titulo__nombres { font-size: 8vh; }
   .mensajes { height: 20vh; }
-  body.sin-mensaje .titulo { transform: none; }
+  body.titulo-grande .titulo { transform: none; }
   .adorno { display: none; }
 }

@@ -119,6 +119,7 @@ export async function iniciarPantalla(config) {
   // El espacio del mensaje mide lo que mide el mensaje: así título + mensaje
   // quedan centrados a la altura de la foto, sin hueco abajo.
   function aplicarModo(capa) {
+    ajustarTitulo(); // se repite en cada foto por si la letra cursiva cargó tarde (pasa en TVs)
     document.body.classList.toggle('sin-mensaje', !capa.conMensaje);
     let alto = 0;
     if (capa.conMensaje) {
@@ -126,6 +127,8 @@ export async function iniciarPantalla(config) {
       const bloque = capa.msg.querySelector('.mensaje');
       alto = Math.min(bloque ? bloque.offsetHeight : 0, window.innerHeight * 0.34);
     }
+    // Mensaje corto (una o dos líneas): el título también crece para no dejar espacio vacío
+    document.body.classList.toggle('titulo-grande', !capa.conMensaje || alto < window.innerHeight * 0.2);
     zonaMensajes.style.height = `${Math.ceil(alto)}px`;
   }
 
@@ -135,7 +138,7 @@ export async function iniciarPantalla(config) {
     capa.foto.innerHTML = foto
       ? `<figure class="marco"><div class="marco__recorte"><img class="marco__foto" src="${src}" alt="${escaparHTML(alt)}"></div></figure>`
       : `<figure class="marco"><div class="marco__recorte"><div class="marco__vacio">${SVG.camara}<span>${escaparHTML(config.textoSinFotos)}</span></div></div></figure>`;
-    capa.foto.insertAdjacentHTML('beforeend', '<div class="foto-pie-zona"></div>');
+    capa.foto.innerHTML = `<div class="foto-grupo">${capa.foto.innerHTML}<div class="foto-pie-zona"></div></div>`;
     pintarTextos(capa, foto);
     capa.foto.style.setProperty('--duracion', `${intervaloMs / 1000 + 4}s`);
   }
@@ -248,6 +251,7 @@ export async function iniciarPantalla(config) {
   const reajustar = () => { ajustarTitulo(); aplicarModo(capas[capaActiva]); };
   reajustar();
   if (document.fonts) document.fonts.ready.then(reajustar);
+  [1500, 4000, 10000].forEach((ms) => setTimeout(reajustar, ms));
   window.addEventListener('resize', reajustar);
 
   // ---- Conexión (si falla, reintenta recargando la página) ----
@@ -365,7 +369,7 @@ function ajustarTitulo() {
     0,
   );
   const anchoTitulo = Math.max(anchoNombres, anchoFila);
-  const escala = Math.max(1, Math.min(1.4, (ancho * 0.86) / (anchoTitulo || ancho)));
+  const escala = Math.max(1, Math.min(1.4, (ancho * 0.95) / (anchoTitulo || ancho)));
   titulo.style.setProperty('--escala-grande', escala.toFixed(3));
 }
 
